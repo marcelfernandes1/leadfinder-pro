@@ -27,7 +27,8 @@ export const config = {
      * - favicon.ico (favicon file)
      * - public folder
      * - API routes that handle their own auth
+     * - /api/inngest (Inngest webhook endpoint)
      */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|api/inngest|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }

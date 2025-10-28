@@ -3,13 +3,6 @@
  *
  * POST /api/search
  * Creates a new lead search and triggers background discovery process
- *
- * This endpoint:
- * 1. Validates user authentication
- * 2. Checks usage limits based on subscription tier
- * 3. Creates search record in database
- * 4. Triggers Inngest background job for lead discovery
- * 5. Returns immediately with search ID (non-blocking)
  */
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -55,7 +48,7 @@ export async function POST(request: NextRequest) {
 
     if (!validation.success) {
       return NextResponse.json(
-        { error: 'Invalid request', details: validation.error.errors },
+        { error: 'Invalid request', details: validation.error.issues },
         { status: 400 }
       )
     }
