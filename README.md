@@ -175,3 +175,4 @@ Contributions are welcome! Please read the development guidelines in [CLAUDE.md]
 ## 📞 Support
 
 For questions or support, contact: [your-email@example.com]
+# Cache bust Tue Oct 28 20:32:46 +04 2025
