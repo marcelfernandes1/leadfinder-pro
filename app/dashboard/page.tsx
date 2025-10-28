@@ -12,9 +12,12 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
+
+// Force dynamic rendering to avoid pre-render issues with useSearchParams
+export const dynamic = 'force-dynamic';
 
 interface Lead {
   id: string;
