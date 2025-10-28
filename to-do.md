@@ -432,8 +432,8 @@
 ---
 
 ### 16. Lead Orchestrator Service
-- [ ] Create `/lib/services/leadOrchestrator.ts`
-- [ ] Create main function `processLeadSearch(searchId, location, industry, count)`:
+- [x] Create `/lib/inngest/functions/discoverLeads.ts` - Main orchestrator function
+- [x] Create main function `processLeadSearch(searchId, location, industry, count)`:
   1. Update search status to "processing"
   2. Call Google Maps API to get businesses
   3. For each business:
@@ -441,7 +441,7 @@
      - Queue background jobs for enrichment (email, social, CRM)
   4. Update search status to "completed"
   5. Return search results
-- [ ] Create Inngest function for email enrichment:
+- [x] Create Inngest function for email enrichment:
   ```typescript
   inngest.createFunction(
     { id: "enrich-lead-email" },
@@ -453,10 +453,10 @@
     }
   );
   ```
-- [ ] Create Inngest function for social media enrichment
-- [ ] Create Inngest function for CRM detection
-- [ ] Create Inngest function to calculate probability score (runs after all enrichment)
-- [ ] Add progress tracking (update `searches.progress` field)
+- [ ] Create Inngest function for social media enrichment - Skipped for MVP (no Apify integration)
+- [x] Create Inngest function for CRM detection
+- [x] Create Inngest function to calculate probability score (runs after all enrichment)
+- [x] Add progress tracking (update `searches.progress` field)
 
 **AI Coding Note:** This is the most complex part. Build incrementally:
 1. First, just get Google Maps working
@@ -563,8 +563,8 @@ Test each step before moving to next. Don't try to build it all at once.
 ---
 
 ### 21. Lead Dashboard - Layout & Structure
-- [ ] Create `/app/dashboard/page.tsx`
-- [ ] Design layout:
+- [x] Create `/app/dashboard/page.tsx`
+- [x] Design layout:
   ```
   +----------------------------------+
   | Header (user info, new search)   |
@@ -575,50 +575,50 @@ Test each step before moving to next. Don't try to build it all at once.
   |        |  Pagination             |
   +--------+-------------------------+
   ```
-- [ ] Add header section:
+- [x] Add header section:
   - Display total leads found
   - "New Search" button
   - Usage meter (e.g., "347/500 leads used this month")
-- [ ] Create filter sidebar (empty for now, will populate next)
-- [ ] Create main content area for lead cards
-- [ ] Add pagination or infinite scroll
-- [ ] Make responsive (filters collapse on mobile)
+- [x] Create filter sidebar (empty for now, will populate next)
+- [x] Create main content area for lead cards
+- [x] Add pagination or infinite scroll
+- [x] Make responsive (filters collapse on mobile)
 
 **AI Coding Note:** Build static layout first. Add functionality later. Easier to debug.
 
 ---
 
 ### 22. Lead Dashboard - Filters & Sorting
-- [ ] Add filter controls in sidebar:
+- [x] Add filter controls in sidebar:
   - **Probability Score:** range slider (0-100)
   - **Status:** dropdown (All, Not Contacted, Messaged, Responded, Not Interested, Closed)
   - **Has Email:** checkbox
   - **Has Phone:** checkbox
   - **Has Instagram:** checkbox
   - **Has Facebook:** checkbox
-- [ ] Add sort dropdown in header:
+- [x] Add sort dropdown in header:
   - Probability Score (High to Low) - default
   - Probability Score (Low to High)
   - Business Name (A-Z)
   - Recently Added
-- [ ] Use URL search params for filters:
+- [x] Use URL search params for filters:
   ```typescript
   const searchParams = useSearchParams();
   const minScore = searchParams.get('minScore') || 0;
   const status = searchParams.get('status') || 'all';
   ```
-- [ ] Update URL when filters change (enables sharing filtered views)
-- [ ] Fetch leads with filters applied
-- [ ] Add "Clear Filters" button
-- [ ] Show filter count (e.g., "3 filters applied")
+- [x] Update URL when filters change (enables sharing filtered views)
+- [x] Fetch leads with filters applied
+- [x] Add "Clear Filters" button
+- [x] Show filter count (e.g., "3 filters applied")
 
 **AI Coding Note:** URL params are better than local state. Enables sharing, bookmarking, back button works.
 
 ---
 
 ### 23. Lead Card Component
-- [ ] Create `/components/LeadCard.tsx`
-- [ ] Design card layout:
+- [x] Create `/components/LeadCard.tsx`
+- [x] Design card layout:
   ```
   +----------------------------------------+
   | [Checkbox] Business Name          [85] | <- Score badge
@@ -630,21 +630,21 @@ Test each step before moving to next. Don't try to build it all at once.
   | Status: [Dropdown]     Last updated: 2h|
   +----------------------------------------+
   ```
-- [ ] Implement color-coded probability score badge:
+- [x] Implement color-coded probability score badge:
   - Green (80-100): High probability
   - Yellow (60-79): Medium probability
   - Gray (<60): Low probability
-- [ ] Add clickable contact links:
+- [x] Add clickable contact links:
   - Website: `<a href={website} target="_blank">`
   - Email: `<a href={`mailto:${email}`}>`
   - Phone: `<a href={`tel:${phone}`}>`
   - Instagram: `<a href={`https://instagram.com/${username}`} target="_blank">`
   - Facebook: `<a href={facebookUrl} target="_blank">`
   - WhatsApp: `<a href={`https://wa.me/${whatsapp}`} target="_blank">`
-- [ ] Add status dropdown (controlled component)
-- [ ] Handle missing data gracefully (hide link if data not available)
-- [ ] Add hover effects for better UX
-- [ ] Add checkbox for bulk selection
+- [x] Add status dropdown (controlled component) - Note: LeadCard component is embedded in dashboard page
+- [x] Handle missing data gracefully (hide link if data not available)
+- [x] Add hover effects for better UX
+- [ ] Add checkbox for bulk selection - Future enhancement
 
 **AI Coding Note:** This component will be large. Consider breaking into subcomponents:
 - `LeadCardHeader`
@@ -735,8 +735,8 @@ Keep it under 200 lines total.
 ## API Development (Weeks 4-5)
 
 ### 28. Search API Endpoint
-- [ ] Create `/app/api/search/route.ts`
-- [ ] Accept POST request with body:
+- [x] Create `/app/api/search/route.ts`
+- [x] Accept POST request with body:
   ```json
   {
     "location": "Miami, FL",
@@ -745,18 +745,18 @@ Keep it under 200 lines total.
     "count": 200
   }
   ```
-- [ ] Validate input with Zod
-- [ ] Check user authentication (Supabase session)
+- [x] Validate input with Zod
+- [x] Check user authentication (Supabase session)
 - [ ] Check usage limits (don't exceed subscription tier limits)
-- [ ] Create new search record in database
-- [ ] Trigger Inngest function to start lead discovery:
+- [x] Create new search record in database
+- [x] Trigger Inngest function to start lead discovery:
   ```typescript
   await inngest.send({
     name: "search/discover-leads",
     data: { searchId, location, industry, count }
   });
   ```
-- [ ] Return search ID immediately (don't wait for results)
+- [x] Return search ID immediately (don't wait for results)
 - [ ] Add rate limiting (max 5 searches per hour per user)
 
 **AI Coding Note:** This endpoint just kicks off the process. Don't do heavy work here. Return quickly.
@@ -764,10 +764,10 @@ Keep it under 200 lines total.
 ---
 
 ### 29. Search Status API Endpoint
-- [ ] Create `/app/api/search/[searchId]/status/route.ts`
-- [ ] Accept GET request
-- [ ] Fetch search from database by ID
-- [ ] Return status object:
+- [x] Create `/app/api/search/[searchId]/status/route.ts`
+- [x] Accept GET request
+- [x] Fetch search from database by ID
+- [x] Return status object:
   ```json
   {
     "status": "processing",
@@ -776,23 +776,23 @@ Keep it under 200 lines total.
     "leadsFound": 127
   }
   ```
-- [ ] Add authentication check (user must own this search)
+- [x] Add authentication check (user must own this search)
 
 **AI Coding Note:** Simple GET endpoint. Just return data from database.
 
 ---
 
 ### 30. Search Results API Endpoint
-- [ ] Create `/app/api/search/[searchId]/results/route.ts`
-- [ ] Accept GET request with query params for filtering/sorting:
+- [x] Create `/app/api/search/[searchId]/results/route.ts`
+- [x] Accept GET request with query params for filtering/sorting:
   - `minScore`, `maxScore` - filter by probability score
   - `status` - filter by lead status
   - `hasEmail`, `hasPhone`, `hasInstagram` - filter by contact data
   - `sortBy` - sort field (score, name, createdAt)
   - `page`, `limit` - pagination
-- [ ] Fetch leads from database using Supabase with filters applied
-- [ ] Join with lead_status table to get status for current user
-- [ ] Return paginated results:
+- [x] Fetch leads from database using Supabase with filters applied
+- [ ] Join with lead_status table to get status for current user - Not needed for MVP
+- [x] Return paginated results:
   ```json
   {
     "leads": [...],
@@ -801,7 +801,7 @@ Keep it under 200 lines total.
     "limit": 20
   }
   ```
-- [ ] Add authentication check
+- [x] Add authentication check
 
 **AI Coding Note:** Use Supabase's query builder. It handles filtering, sorting, pagination. Don't reinvent.
 
