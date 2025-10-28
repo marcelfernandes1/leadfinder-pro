@@ -1,330 +1,335 @@
 /**
  * Probability Score Calculator
  *
- * Calculates a 0-100 score indicating how likely a business is to buy
- * CRM/marketing automation services.
+ * This module calculates a buying probability score (0-100) for each lead
+ * based on various qualification factors. Higher scores indicate better leads.
  *
- * Higher scores = better leads
- * - 80-100 (Green): High priority leads
- * - 60-79 (Yellow): Medium priority leads
- * - 0-59 (Gray): Low priority leads
+ * Score Breakdown:
+ * - No CRM/automation detected: +40 points (biggest qualifier)
+ * - Has website: +15 points
+ * - Active on social media (Instagram OR Facebook): +10 points
+ * - Email found: +10 points
+ * - Phone found: +10 points
+ * - Google rating >= 4.0: +10 points
+ * - Service-based industry confirmed: +5 points
+ *
+ * Score Interpretation:
+ * - 80-100 (green): High priority - excellent lead quality
+ * - 60-79 (yellow): Medium priority - good lead quality
+ * - 0-59 (gray): Low priority - missing key qualifiers
  */
 
 /**
  * Interface for lead data used in score calculation
  */
 export interface LeadData {
-  // Contact information availability
-  hasWebsite: boolean
-  hasEmail: boolean
-  hasPhone: boolean
-  hasInstagram: boolean
-  hasFacebook: boolean
-  hasWhatsApp: boolean
-  hasLinkedIn: boolean
+  // Contact information
+  website?: string | null;
+  email?: string | null;
+  phone?: string | null;
 
-  // CRM/automation status (most important factor)
-  hasAutomation: boolean
+  // Social media presence
+  instagram?: string | null;
+  facebook?: string | null;
+  linkedin?: string | null;
+  tiktok?: string | null;
+  whatsapp?: string | null;
+
+  // CRM/automation detection
+  hasAutomation: boolean;
 
   // Business quality indicators
-  googleRating?: number
-  userRatingsTotal?: number
-
-  // Business type
-  industry?: string
-  businessTypes?: string[]
+  googleRating?: number | null;
+  industry?: string | null;
+  businessType?: string | null;
 }
 
 /**
- * Calculate probability score for a lead
+ * Service-based business types that are ideal for CRM/automation
+ * These industries typically benefit most from marketing automation
+ */
+const SERVICE_BASED_INDUSTRIES = [
+  // Home services
+  'plumber', 'plumbing', 'hvac', 'heating', 'cooling', 'electrician', 'electrical',
+  'roofing', 'roofer', 'contractor', 'remodeling', 'renovation', 'painting', 'painter',
+  'landscaping', 'landscaper', 'lawn care', 'pest control', 'cleaning', 'maid service',
+  'handyman', 'carpenter', 'flooring', 'garage door',
+
+  // Professional services
+  'lawyer', 'attorney', 'legal', 'accountant', 'accounting', 'bookkeeping',
+  'real estate', 'realtor', 'insurance agent', 'financial advisor', 'consultant',
+  'marketing', 'advertising', 'web design', 'web development',
+
+  // Health & wellness
+  'dentist', 'dental', 'chiropractor', 'physical therapy', 'massage', 'spa',
+  'medical', 'doctor', 'veterinarian', 'vet', 'clinic',
+
+  // Personal services
+  'salon', 'hair', 'barber', 'beauty', 'fitness', 'gym', 'personal trainer',
+  'photography', 'photographer', 'catering', 'event planning',
+
+  // Automotive
+  'auto repair', 'mechanic', 'car wash', 'detailing', 'towing',
+];
+
+/**
+ * Checks if a business is service-based
  *
- * @param lead - Lead data with contact info and business details
- * @returns Probability score (0-100)
+ * Service-based businesses are typically better leads because they:
+ * 1. Rely heavily on customer relationships
+ * 2. Benefit from marketing automation
+ * 3. Have higher lifetime customer value
  *
- * Scoring breakdown:
- * - No CRM/automation detected: +40 points (biggest qualifier)
- * - Has website: +15 points (shows they're established)
- * - Active on social media (Instagram OR Facebook): +10 points (reachable)
- * - Email found: +10 points (can contact them)
- * - Phone found: +10 points (can call them)
- * - Good Google rating (4.0+): +10 points (quality business)
- * - Service-based business: +5 points (target market)
+ * @param industry - The industry or business type
+ * @returns True if service-based
+ */
+export function isServiceBased(industry: string | null | undefined): boolean {
+  if (!industry) return false;
+
+  const industryLower = industry.toLowerCase();
+
+  // Check if industry matches any of our service-based keywords
+  return SERVICE_BASED_INDUSTRIES.some(keyword =>
+    industryLower.includes(keyword)
+  );
+}
+
+/**
+ * Calculates the buying probability score for a lead
+ *
+ * This is a pure function with no side effects - easy to test and reason about.
+ * It takes lead data and returns a score from 0-100.
+ *
+ * @param lead - The lead data to score
+ * @returns Probability score from 0-100
+ *
+ * @example
+ * const score = calculateProbabilityScore({
+ *   website: "example.com",
+ *   email: "contact@example.com",
+ *   phone: "+1-555-0100",
+ *   hasAutomation: false,
+ *   googleRating: 4.5,
+ *   industry: "plumber"
+ * });
+ * // Returns: 100 (perfect score!)
  */
 export function calculateProbabilityScore(lead: LeadData): number {
-  let score = 0
+  let score = 0;
 
-  // 1. NO CRM/AUTOMATION DETECTED (40 points) - Most important factor
-  // This is the primary qualifier - businesses without automation are our target
+  // 1. No CRM/automation detected (BIGGEST qualifier - 40 points)
+  // These businesses need our help the most
   if (!lead.hasAutomation) {
-    score += 40
+    score += 40;
   }
 
-  // 2. HAS WEBSITE (15 points)
-  // Shows the business is established and professional
-  if (lead.hasWebsite) {
-    score += 15
+  // 2. Has website (15 points)
+  // Shows they're established and serious about their business
+  if (lead.website) {
+    score += 15;
   }
 
-  // 3. ACTIVE ON SOCIAL MEDIA (10 points)
-  // Indicates they understand digital marketing and are reachable
-  if (lead.hasInstagram || lead.hasFacebook) {
-    score += 10
+  // 3. Active on social media (10 points)
+  // If they have ANY social presence (Instagram OR Facebook OR other)
+  // This shows they understand online marketing
+  const hasSocial = Boolean(
+    lead.instagram ||
+    lead.facebook ||
+    lead.linkedin ||
+    lead.tiktok
+  );
+  if (hasSocial) {
+    score += 10;
   }
 
-  // 4. EMAIL FOUND (10 points)
-  // Critical for outreach campaigns
-  if (lead.hasEmail) {
-    score += 10
+  // 4. Email found (10 points)
+  // We can reach them directly for outreach
+  if (lead.email) {
+    score += 10;
   }
 
-  // 5. PHONE NUMBER (10 points)
-  // Enables direct calling for warm outreach
-  if (lead.hasPhone) {
-    score += 10
+  // 5. Phone found (10 points)
+  // Alternative contact method - shows they're reachable
+  if (lead.phone) {
+    score += 10;
   }
 
-  // 6. GOOD GOOGLE RATING (10 points)
-  // Indicates a quality business worth targeting
+  // 6. Good Google rating (10 points)
+  // Rating >= 4.0 indicates a quality, customer-focused business
+  // These businesses care about reviews and would benefit from automation
   if (lead.googleRating && lead.googleRating >= 4.0) {
-    score += 10
+    score += 10;
   }
 
-  // 7. SERVICE-BASED BUSINESS (5 points)
-  // Service businesses are our ideal customer profile
-  if (lead.industry && isServiceBasedIndustry(lead.industry)) {
-    score += 5
+  // 7. Service-based industry confirmed (5 points)
+  // Service businesses benefit most from CRM/automation
+  const industry = lead.industry || lead.businessType;
+  if (isServiceBased(industry)) {
+    score += 5;
   }
 
-  // Alternative check using Google Places business types
-  if (lead.businessTypes && isServiceBasedTypes(lead.businessTypes)) {
-    score += 5
-  }
-
-  // Ensure score is within 0-100 range
-  return Math.max(0, Math.min(100, score))
+  // Ensure score is within valid range (should already be, but just in case)
+  return Math.max(0, Math.min(100, score));
 }
 
 /**
- * Determine if an industry is service-based
+ * Gets the score category for display purposes
  *
- * @param industry - Industry name or description
- * @returns true if the industry is service-based
+ * @param score - The probability score
+ * @returns Category object with label and color
  */
-export function isServiceBasedIndustry(industry: string): boolean {
-  const industryLower = industry.toLowerCase()
-
-  const serviceKeywords = [
-    'plumber',
-    'plumbing',
-    'electrician',
-    'electrical',
-    'contractor',
-    'construction',
-    'hvac',
-    'heating',
-    'cooling',
-    'repair',
-    'maintenance',
-    'cleaning',
-    'landscaping',
-    'lawn',
-    'roofing',
-    'painting',
-    'renovation',
-    'remodeling',
-    'lawyer',
-    'attorney',
-    'legal',
-    'accounting',
-    'accountant',
-    'consulting',
-    'consultant',
-    'marketing',
-    'advertising',
-    'real estate',
-    'realtor',
-    'insurance',
-    'financial',
-    'dental',
-    'dentist',
-    'doctor',
-    'medical',
-    'veterinary',
-    'vet',
-    'salon',
-    'spa',
-    'fitness',
-    'gym',
-    'training',
-    'tutoring',
-    'education',
-    'moving',
-    'storage',
-    'locksmith',
-    'security',
-    'pest control',
-    'auto repair',
-    'mechanic',
-    'towing',
-  ]
-
-  return serviceKeywords.some((keyword) => industryLower.includes(keyword))
-}
-
-/**
- * Determine if business types indicate service-based business
- *
- * @param types - Array of Google Places business types
- * @returns true if types indicate service-based business
- */
-export function isServiceBasedTypes(types: string[]): boolean {
-  const serviceTypes = [
-    'plumber',
-    'electrician',
-    'general_contractor',
-    'roofing_contractor',
-    'hvac',
-    'lawyer',
-    'attorney',
-    'doctor',
-    'dentist',
-    'veterinary_care',
-    'car_repair',
-    'real_estate_agency',
-    'insurance_agency',
-    'accounting',
-    'locksmith',
-    'moving_company',
-    'spa',
-    'beauty_salon',
-    'hair_care',
-    'gym',
-    'personal_trainer',
-    'home_goods_store',
-    'painter',
-    'carpenter',
-    'landscaper',
-  ]
-
-  return types.some((type) => serviceTypes.includes(type.toLowerCase()))
-}
-
-/**
- * Get color category for score (for UI display)
- *
- * @param score - Probability score (0-100)
- * @returns Color category: 'high', 'medium', or 'low'
- */
-export function getScoreCategory(score: number): 'high' | 'medium' | 'low' {
-  if (score >= 80) return 'high' // Green
-  if (score >= 60) return 'medium' // Yellow
-  return 'low' // Gray
-}
-
-/**
- * Get color code for score category
- *
- * @param category - Score category
- * @returns Tailwind CSS color class
- */
-export function getScoreCategoryColor(category: 'high' | 'medium' | 'low'): string {
-  switch (category) {
-    case 'high':
-      return 'bg-green-100 text-green-800'
-    case 'medium':
-      return 'bg-yellow-100 text-yellow-800'
-    case 'low':
-      return 'bg-gray-100 text-gray-800'
-  }
-}
-
-/**
- * Get score badge with color
- *
- * @param score - Probability score (0-100)
- * @returns Object with score, category, and color class
- */
-export function getScoreBadge(score: number): {
-  score: number
-  category: 'high' | 'medium' | 'low'
-  colorClass: string
-  label: string
+export function getScoreCategory(score: number): {
+  label: string;
+  color: 'green' | 'yellow' | 'gray';
+  priority: 'high' | 'medium' | 'low';
 } {
-  const category = getScoreCategory(score)
-  const colorClass = getScoreCategoryColor(category)
+  if (score >= 80) {
+    return {
+      label: 'High Priority',
+      color: 'green',
+      priority: 'high',
+    };
+  }
 
-  const labels = {
-    high: 'High Priority',
-    medium: 'Medium Priority',
-    low: 'Low Priority',
+  if (score >= 60) {
+    return {
+      label: 'Medium Priority',
+      color: 'yellow',
+      priority: 'medium',
+    };
   }
 
   return {
-    score,
-    category,
-    colorClass,
-    label: labels[category],
-  }
+    label: 'Low Priority',
+    color: 'gray',
+    priority: 'low',
+  };
 }
 
 /**
- * Explain why a lead got their score
- * Useful for debugging and user transparency
+ * Explains why a lead got their score
  *
- * @param lead - Lead data
+ * Useful for showing users why certain leads scored higher/lower.
+ * Returns a breakdown of points earned.
+ *
+ * @param lead - The lead data
  * @returns Array of score factors with points
  */
-export function explainScore(lead: LeadData): Array<{
-  factor: string
-  points: number
-  present: boolean
-}> {
-  const factors: Array<{ factor: string; points: number; present: boolean }> = []
+export function explainScore(lead: LeadData): Array<{ factor: string; points: number; hasIt: boolean }> {
+  const factors = [
+    {
+      factor: 'No CRM/automation detected',
+      points: 40,
+      hasIt: !lead.hasAutomation,
+    },
+    {
+      factor: 'Has website',
+      points: 15,
+      hasIt: Boolean(lead.website),
+    },
+    {
+      factor: 'Active on social media',
+      points: 10,
+      hasIt: Boolean(lead.instagram || lead.facebook || lead.linkedin || lead.tiktok),
+    },
+    {
+      factor: 'Email found',
+      points: 10,
+      hasIt: Boolean(lead.email),
+    },
+    {
+      factor: 'Phone found',
+      points: 10,
+      hasIt: Boolean(lead.phone),
+    },
+    {
+      factor: 'Google rating ≥ 4.0',
+      points: 10,
+      hasIt: Boolean(lead.googleRating && lead.googleRating >= 4.0),
+    },
+    {
+      factor: 'Service-based business',
+      points: 5,
+      hasIt: isServiceBased(lead.industry || lead.businessType),
+    },
+  ];
 
-  factors.push({
-    factor: 'No CRM/Automation detected',
-    points: 40,
-    present: !lead.hasAutomation,
-  })
+  return factors;
+}
 
-  factors.push({
-    factor: 'Has website',
-    points: 15,
-    present: lead.hasWebsite,
-  })
+/**
+ * Calculates scores for multiple leads
+ *
+ * @param leads - Array of leads to score
+ * @returns Array of scores in same order as input
+ */
+export function calculateScoresBatch(leads: LeadData[]): number[] {
+  return leads.map(lead => calculateProbabilityScore(lead));
+}
 
-  factors.push({
-    factor: 'Active on social media',
-    points: 10,
-    present: lead.hasInstagram || lead.hasFacebook,
-  })
+/**
+ * Sorts leads by probability score (highest first)
+ *
+ * @param leads - Array of leads with scores
+ * @returns Sorted array (does not mutate original)
+ */
+export function sortByScore<T extends { probability_score?: number | null }>(leads: T[]): T[] {
+  return [...leads].sort((a, b) => {
+    const scoreA = a.probability_score ?? 0;
+    const scoreB = b.probability_score ?? 0;
+    return scoreB - scoreA;  // Highest scores first
+  });
+}
 
-  factors.push({
-    factor: 'Email address found',
-    points: 10,
-    present: lead.hasEmail,
-  })
+/**
+ * Filters leads by minimum score threshold
+ *
+ * @param leads - Array of leads with scores
+ * @param minScore - Minimum score to include
+ * @returns Filtered array
+ */
+export function filterByMinScore<T extends { probability_score?: number | null }>(
+  leads: T[],
+  minScore: number
+): T[] {
+  return leads.filter(lead => (lead.probability_score ?? 0) >= minScore);
+}
 
-  factors.push({
-    factor: 'Phone number available',
-    points: 10,
-    present: lead.hasPhone,
-  })
+/**
+ * Gets statistics about a set of leads
+ *
+ * @param leads - Array of leads with scores
+ * @returns Statistics object
+ */
+export function getLeadStatistics<T extends { probability_score?: number | null }>(leads: T[]): {
+  total: number;
+  highPriority: number;  // 80-100
+  mediumPriority: number;  // 60-79
+  lowPriority: number;  // 0-59
+  averageScore: number;
+  medianScore: number;
+} {
+  const scores = leads.map(l => l.probability_score ?? 0);
 
-  factors.push({
-    factor: 'Good Google rating (4.0+)',
-    points: 10,
-    present: Boolean(lead.googleRating && lead.googleRating >= 4.0),
-  })
+  const highPriority = scores.filter(s => s >= 80).length;
+  const mediumPriority = scores.filter(s => s >= 60 && s < 80).length;
+  const lowPriority = scores.filter(s => s < 60).length;
 
-  factors.push({
-    factor: 'Service-based business',
-    points: 5,
-    present: Boolean(
-      (lead.industry && isServiceBasedIndustry(lead.industry)) ||
-        (lead.businessTypes && isServiceBasedTypes(lead.businessTypes))
-    ),
-  })
+  const average = scores.length > 0
+    ? scores.reduce((sum, s) => sum + s, 0) / scores.length
+    : 0;
 
-  return factors
+  const sortedScores = [...scores].sort((a, b) => a - b);
+  const median = sortedScores.length > 0
+    ? sortedScores[Math.floor(sortedScores.length / 2)]
+    : 0;
+
+  return {
+    total: leads.length,
+    highPriority,
+    mediumPriority,
+    lowPriority,
+    averageScore: Math.round(average),
+    medianScore: median,
+  };
 }

@@ -1,226 +1,212 @@
 /**
  * Google Maps Places API Service
  *
- * Integrates with Google Maps Places API to discover local businesses.
- * This is the primary data source for lead discovery.
+ * This service integrates with Google Maps Places API to discover local businesses.
+ * It handles business search by location, radius, and industry/business type.
  *
- * Expected coverage:
- * - ~90% of businesses have phone numbers
- * - ~80% of businesses have websites
- * - Google returns max 60 results per search
+ * Expected Results:
+ * - Returns 20-60 businesses per search (Google's max is 60)
+ * - ~90% of results have phone numbers
+ * - ~80% of results have websites
  *
- * API Documentation: https://developers.google.com/maps/documentation/places/web-service
+ * Cost:  per 1000 place details requests
+ * Free tier:  credit/month (~11,000 requests)
  */
 
-import { Client, PlaceData } from '@googlemaps/google-maps-services-js'
+import { Client, PlaceInputType, TextSearchRequest } from '@googlemaps/google-maps-services-js';
 
 // Initialize Google Maps client
-const googleMapsClient = new Client({})
+const client = new Client({});
 
 /**
- * Interface for business data returned from Google Maps
+ * Interface for a business result from Google Maps
  */
 export interface GoogleMapsBusiness {
-  placeId: string
-  name: string
-  address?: string
-  phone?: string
-  website?: string
-  rating?: number
-  userRatingsTotal?: number
-  types?: string[]
-  location?: {
-    lat: number
-    lng: number
-  }
+  placeId: string;
+  name: string;
+  address: string;
+  phone?: string;
+  website?: string;
+  rating?: number;
+  businessType?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 /**
- * Search for businesses using Google Maps Places API
- *
- * @param location - Location to search (e.g., "Miami, FL" or "New York, NY")
- * @param businessType - Optional business type/industry (e.g., "plumber", "restaurant")
- * @param radius - Search radius in meters (default: 16093 = 10 miles)
- * @returns Array of businesses with contact information
- *
- * Note: Google Places API returns maximum 60 results per search.
- * For more results, you need to make multiple searches with different locations.
+ * Interface for search parameters
  */
-export async function searchBusinesses(
-  location: string,
-  businessType?: string,
-  radius: number = 16093 // 10 miles in meters
-): Promise<GoogleMapsBusiness[]> {
-  const apiKey = process.env.GOOGLE_MAPS_API_KEY
+export interface SearchParams {
+  location: string;      // e.g., "Miami, FL" or "90210"
+  radius?: number;       // in miles (converted to meters for API)
+  businessType?: string; // e.g., "plumber", "hvac", "restaurant"
+  maxResults?: number;   // max number of results to return (default: 60)
+}
 
+/**
+ * Converts miles to meters for Google Maps API
+ */
+function milesToMeters(miles: number): number {
+  return Math.round(miles * 1609.34);
+}
+
+/**
+ * Searches for businesses using Google Maps Places API
+ */
+export async function searchBusinesses(params: SearchParams): Promise<GoogleMapsBusiness[]> {
+  const { location, radius = 10, businessType, maxResults = 60 } = params;
+
+  const apiKey = process.env.GOOGLE_MAPS_API_KEY;
   if (!apiKey) {
-    throw new Error('GOOGLE_MAPS_API_KEY is not configured')
+    throw new Error('GOOGLE_MAPS_API_KEY environment variable is not set');
   }
 
+  const query = businessType
+    ? `${businessType} in ${location}`
+    : `businesses in ${location}`;
+
+  console.log(`[GoogleMaps] Searching for: "${query}" within ${radius} miles`);
+
   try {
-    // Step 1: Geocode the location to get coordinates
-    console.log(`🗺️  Geocoding location: ${location}`)
-    const geocodeResponse = await googleMapsClient.geocode({
-      params: {
-        address: location,
-        key: apiKey,
-      },
-    })
+    const businesses: GoogleMapsBusiness[] = [];
+    let nextPageToken: string | undefined;
+    let attempts = 0;
+    const maxAttempts = 3;
 
-    if (!geocodeResponse.data.results || geocodeResponse.data.results.length === 0) {
-      throw new Error(`Could not geocode location: ${location}`)
-    }
+    while (businesses.length < maxResults && attempts < maxAttempts) {
+      attempts++;
 
-    const locationCoords = geocodeResponse.data.results[0].geometry.location
-    console.log(`📍 Coordinates: ${locationCoords.lat}, ${locationCoords.lng}`)
+      const request: TextSearchRequest = {
+        params: {
+          query,
+          key: apiKey,
+          ...(radius && {
+            location: location,
+            radius: milesToMeters(radius),
+          }),
+          ...(nextPageToken && { pagetoken: nextPageToken }),
+        },
+      };
 
-    // Step 2: Search for nearby businesses
-    // Build the query - combine business type with general service-based keywords
-    let query = businessType || 'business'
+      console.log(`[GoogleMaps] Making API request (attempt ${attempts}/${maxAttempts})`);
 
-    // Add service-based business indicators if no specific type provided
-    if (!businessType) {
-      query = 'service business local company'
-    }
+      const response = await makeRequestWithRetry(request);
 
-    console.log(`🔍 Searching for: "${query}" within ${radius}m radius`)
+      if (!response.data.results || response.data.results.length === 0) {
+        console.log('[GoogleMaps] No more results found');
+        break;
+      }
 
-    const placesResponse = await googleMapsClient.textSearch({
-      params: {
-        query,
-        location: locationCoords,
-        radius,
-        key: apiKey,
-      },
-    })
+      console.log(`[GoogleMaps] Found ${response.data.results.length} businesses in this page`);
 
-    const places = placesResponse.data.results || []
-    console.log(`✅ Found ${places.length} businesses from Google Maps`)
+      for (const place of response.data.results) {
+        if (businesses.length >= maxResults) break;
 
-    // Step 3: Get detailed information for each place
-    // We need to make individual Place Details requests to get phone, website, etc.
-    const businesses: GoogleMapsBusiness[] = []
-
-    for (const place of places) {
-      try {
-        // Get place details to retrieve phone number and website
-        const detailsResponse = await googleMapsClient.placeDetails({
-          params: {
-            place_id: place.place_id!,
-            fields: [
-              'name',
-              'formatted_address',
-              'formatted_phone_number',
-              'website',
-              'rating',
-              'user_ratings_total',
-              'types',
-              'geometry',
-            ],
-            key: apiKey,
-          },
-        })
-
-        const details = detailsResponse.data.result
-
-        if (!details) continue
+        const details = await getPlaceDetails(place.place_id!, apiKey);
 
         businesses.push({
           placeId: place.place_id!,
-          name: details.name || 'Unknown Business',
-          address: details.formatted_address,
-          phone: details.formatted_phone_number,
-          website: details.website,
-          rating: details.rating,
-          userRatingsTotal: details.user_ratings_total,
-          types: details.types,
-          location: details.geometry?.location
-            ? {
-                lat: details.geometry.location.lat,
-                lng: details.geometry.location.lng,
-              }
-            : undefined,
-        })
+          name: place.name!,
+          address: place.formatted_address!,
+          phone: details?.formatted_phone_number,
+          website: details?.website,
+          rating: place.rating,
+          businessType: place.types?.[0],
+          latitude: place.geometry?.location.lat,
+          longitude: place.geometry?.location.lng,
+        });
+      }
 
-        // Small delay to respect rate limits (optional)
-        await new Promise((resolve) => setTimeout(resolve, 100))
-      } catch (error) {
-        console.error(`Failed to get details for place ${place.place_id}:`, error)
-        // Continue with other places even if one fails
-        continue
+      nextPageToken = response.data.next_page_token;
+
+      if (nextPageToken && businesses.length < maxResults) {
+        console.log('[GoogleMaps] Waiting 2 seconds before fetching next page...');
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      } else {
+        break;
       }
     }
 
-    console.log(`📊 Enriched ${businesses.length} businesses with details`)
+    console.log(`[GoogleMaps] Search complete: Found ${businesses.length} businesses`);
+    return businesses;
 
-    // Filter out businesses without basic information
-    const validBusinesses = businesses.filter((b) => b.name && (b.phone || b.website))
-
-    console.log(`✨ Returning ${validBusinesses.length} businesses with contact info`)
-
-    return validBusinesses
   } catch (error) {
-    console.error('Google Maps API error:', error)
-    throw new Error(
-      `Failed to search businesses: ${error instanceof Error ? error.message : 'Unknown error'}`
-    )
+    console.error('[GoogleMaps] Search failed:', error);
+    throw new Error(`Google Maps search failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
 
-/**
- * Extract domain from website URL for email finding
- *
- * @param websiteUrl - Full website URL (e.g., "https://example.com/page")
- * @returns Clean domain (e.g., "example.com")
- */
-export function extractDomain(websiteUrl: string): string | null {
+async function getPlaceDetails(placeId: string, apiKey: string) {
   try {
-    const url = new URL(websiteUrl)
-    // Remove www. prefix if present
-    return url.hostname.replace(/^www\./, '')
-  } catch {
-    // If URL parsing fails, try basic string manipulation
-    const match = websiteUrl.match(/(?:https?:\/\/)?(?:www\.)?([^\/\?]+)/)
-    return match ? match[1] : null
+    const response = await client.placeDetails({
+      params: {
+        place_id: placeId,
+        key: apiKey,
+        fields: ['formatted_phone_number', 'website', 'name'],
+      },
+    });
+
+    return response.data.result;
+  } catch (error) {
+    console.warn(`[GoogleMaps] Failed to get details for place ${placeId}:`, error);
+    return null;
   }
 }
 
-/**
- * Determine if a business type is service-based
- * Service-based businesses are more likely to need CRM/automation tools
- *
- * @param types - Array of Google Places business types
- * @returns true if the business is likely service-based
- */
-export function isServiceBased(types?: string[]): boolean {
-  if (!types || types.length === 0) return false
+async function makeRequestWithRetry(request: TextSearchRequest, maxRetries = 3) {
+  let lastError: Error | null = null;
 
-  const serviceTypes = [
-    'plumber',
-    'electrician',
-    'contractor',
-    'lawyer',
-    'attorney',
-    'doctor',
-    'dentist',
-    'veterinary_care',
-    'car_repair',
-    'home_goods_store',
-    'real_estate_agency',
-    'insurance_agency',
-    'travel_agency',
-    'accounting',
-    'locksmith',
-    'roofing_contractor',
-    'general_contractor',
-    'hvac',
-    'moving_company',
-    'spa',
-    'beauty_salon',
-    'hair_care',
-    'gym',
-    'personal_trainer',
-  ]
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const response = await client.textSearch(request);
 
-  return types.some((type) => serviceTypes.includes(type))
+      if (response.data.status === 'OK' || response.data.status === 'ZERO_RESULTS') {
+        return response;
+      }
+
+      if (response.data.status === 'OVER_QUERY_LIMIT') {
+        throw new Error('Google Maps API quota exceeded');
+      }
+
+      if (response.data.status === 'REQUEST_DENIED') {
+        throw new Error('Google Maps API request denied');
+      }
+
+      if (response.data.status === 'INVALID_REQUEST') {
+        throw new Error('Invalid request to Google Maps API');
+      }
+
+      throw new Error(`Google Maps API returned status: ${response.data.status}`);
+
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error('Unknown error');
+      console.warn(`[GoogleMaps] Request attempt ${attempt}/${maxRetries} failed:`, lastError.message);
+
+      if (attempt < maxRetries) {
+        const waitTime = Math.pow(2, attempt - 1) * 1000;
+        console.log(`[GoogleMaps] Retrying in ${waitTime}ms...`);
+        await new Promise(resolve => setTimeout(resolve, waitTime));
+      }
+    }
+  }
+
+  throw lastError || new Error('Failed to complete Google Maps request after multiple retries');
+}
+
+export async function testConnection(): Promise<boolean> {
+  try {
+    console.log('[GoogleMaps] Testing API connection...');
+
+    const results = await searchBusinesses({
+      location: 'Miami, FL',
+      businessType: 'restaurant',
+      maxResults: 1,
+    });
+
+    console.log('[GoogleMaps] Connection test successful');
+    return results.length > 0;
+  } catch (error) {
+    console.error('[GoogleMaps] Connection test failed:', error);
+    return false;
+  }
 }

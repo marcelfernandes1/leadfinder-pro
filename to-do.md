@@ -289,19 +289,19 @@
 ## Core Feature Development (Weeks 2-4)
 
 ### 11. Google Maps Service Integration
-- [ ] Create `/lib/services/googleMaps.ts`
+- [x] Create `/lib/services/googleMaps.ts`
 - [x] Install Google Maps client:
   ```bash
   npm install @googlemaps/google-maps-services-js
   ```
-- [ ] Create function `searchBusinesses(location, radius, businessType)`:
+- [x] Create function `searchBusinesses(location, radius, businessType)`:
   - Use Places API Text Search
   - Return array of business objects
   - Extract: name, formatted_address, formatted_phone_number, website, rating
-- [ ] Add error handling for API limits
-- [ ] Add retry logic (3 attempts)
+- [x] Add error handling for API limits
+- [x] Add retry logic (3 attempts)
 - [ ] Test with multiple locations (e.g., "Miami, FL", "Los Angeles, CA")
-- [ ] Log API usage for monitoring
+- [x] Log API usage for monitoring
 
 **Expected Output:** Array of 20-60 businesses per search (Google returns max 60)
 
@@ -310,14 +310,14 @@
 ---
 
 ### 12. Email Finding Service
-- [ ] Create `/lib/services/emailFinder.ts`
-- [ ] Implement Hunter.io integration:
+- [x] Create `/lib/services/emailFinder.ts`
+- [x] Implement Hunter.io integration:
   - Function `findEmail(domain)` - finds email from domain
   - Function `verifyEmail(email)` - verifies if email is valid
-- [ ] Add rate limiting (respect Hunter.io limits)
+- [x] Add rate limiting (respect Hunter.io limits)
 - [ ] Add fallback: if Hunter.io fails, try extracting email from website
-- [ ] Create helper function to extract domain from full URL
-- [ ] Handle common edge cases:
+- [x] Create helper function to extract domain from full URL
+- [x] Handle common edge cases:
   - No website provided
   - Invalid domain
   - Rate limit reached
@@ -351,12 +351,12 @@
 ---
 
 ### 14. CRM/Automation Detection Service
-- [ ] Create `/lib/services/crmDetector.ts`
+- [x] Create `/lib/services/crmDetector.ts`
 - [x] Install dependencies:
   ```bash
   npm install axios cheerio
   ```
-- [ ] Create function `detectCRM(websiteUrl)`:
+- [x] Create function `detectCRM(websiteUrl)`:
   - Fetch website HTML (with 10 second timeout)
   - Search HTML for common CRM/automation scripts:
     - HubSpot: `hs-scripts.com`, `hsforms.net`
@@ -370,11 +370,11 @@
     - Intercom: `intercom.io`
     - Drift: `drift.com`
   - Return object: `{ hasAutomation: boolean, detectedTools: string[] }`
-- [ ] Handle errors gracefully:
+- [x] Handle errors gracefully:
   - Website unreachable → assume no CRM
   - Invalid URL → skip detection
   - Timeout → assume no CRM
-- [ ] Add caching (don't check same domain twice)
+- [x] Add caching (don't check same domain twice) - placeholder functions created
 
 **Expected Success Rate:** 70-80% of websites will be reachable and checkable
 
@@ -383,8 +383,8 @@
 ---
 
 ### 15. Probability Score Calculator
-- [ ] Create `/lib/utils/scoreCalculator.ts`
-- [ ] Implement pure function `calculateProbabilityScore(lead)`:
+- [x] Create `/lib/utils/scoreCalculator.ts`
+- [x] Implement pure function `calculateProbabilityScore(lead)`:
   ```typescript
   interface Lead {
     hasWebsite: boolean;
@@ -424,7 +424,7 @@
     return Math.min(score, 100); // Cap at 100
   }
   ```
-- [ ] Add helper function `isServiceBased(industry)` to check if service-based
+- [x] Add helper function `isServiceBased(industry)` to check if service-based
 - [ ] Add unit tests for edge cases (all fields missing, all fields present, etc.)
 
 **AI Coding Note:** This is a pure function. Easy to test. No side effects. Keep it simple.

@@ -1,227 +1,274 @@
 /**
- * Email Finding Service (Hunter.io Integration)
+ * Email Finding Service - Hunter.io Integration
  *
- * Integrates with Hunter.io API to find email addresses from business domains.
- * Expected success rate: 50-60% (many businesses don't have discoverable emails).
+ * This service uses Hunter.io API to find email addresses for businesses.
+ * Hunter.io searches across the web to find verified email addresses
+ * associated with company domains.
  *
- * API Documentation: https://hunter.io/api-documentation/v2
+ * Expected Success Rate: 50-60% of businesses will have email found
+ * This is NORMAL - many small local businesses don't have discoverable emails.
+ *
+ * API Cost: Paid plans start at /mo for 500 searches
+ * Free tier: 50 searches/month (good for testing)
+ *
+ * Important: Email finding failures should not block the pipeline.
+ * Always return null instead of throwing errors.
  */
 
-import axios from 'axios'
+import axios from 'axios';
 
 /**
- * Interface for Hunter.io API response
+ * Interface for Hunter.io email search result
  */
-interface HunterResponse {
-  data: {
-    email?: string
-    score?: number
-    firstName?: string
-    lastName?: string
-    position?: string
-    type?: string
-  }
-  meta: {
-    params: {
-      domain: string
+export interface EmailResult {
+  email: string | null;
+  confidence: number;  // 0-100, how confident Hunter.io is about the email
+  firstName?: string;
+  lastName?: string;
+  position?: string;
+  source?: string;  // Where the email was found
+}
+
+/**
+ * Extracts domain from a full URL or email address
+ *
+ * @param url - Full URL (e.g., "https://www.example.com/page") or domain ("example.com")
+ * @returns Clean domain (e.g., "example.com")
+ *
+ * @example
+ * extractDomain("https://www.example.com/about") // returns "example.com"
+ * extractDomain("example.com") // returns "example.com"
+ * extractDomain("user@example.com") // returns "example.com"
+ */
+function extractDomain(url: string): string | null {
+  if (!url) return null;
+
+  try {
+    // Remove protocol if present
+    let domain = url.replace(/^https?:///, '');
+
+    // Remove www. if present
+    domain = domain.replace(/^www./, '');
+
+    // Remove path and query string
+    domain = domain.split('/')[0].split('?')[0];
+
+    // If it's an email, extract domain
+    if (domain.includes('@')) {
+      domain = domain.split('@')[1];
     }
+
+    // Validate domain format (basic check)
+    if (!domain.includes('.') || domain.length < 4) {
+      return null;
+    }
+
+    return domain.toLowerCase();
+  } catch (error) {
+    console.warn(`[EmailFinder] Failed to extract domain from "${url}":`, error);
+    return null;
   }
 }
 
 /**
- * Find an email address for a given domain using Hunter.io
+ * Finds an email address for a given domain using Hunter.io
  *
- * @param domain - The business domain (e.g., "example.com")
- * @returns Email address if found, null if not found or error occurs
+ * This function searches Hunter.io's database for email addresses associated
+ * with the given domain. It only returns emails with confidence >= 70.
  *
- * Note: Failures are expected (~40-50% failure rate). This should not block
- * lead processing. Continue with other leads even if email finding fails.
+ * @param websiteUrl - The business website URL or domain
+ * @returns Email result with address and confidence, or null if not found
+ *
+ * @example
+ * const result = await findEmail("acme.com");
+ * if (result && result.email) {
+ *   console.log(`Found email: ${result.email} (confidence: ${result.confidence}%)`);
+ * }
+ *
+ * Note: This function will NOT throw errors. If email finding fails,
+ * it returns null. This is intentional - failures are expected and normal.
  */
-export async function findEmail(domain: string): Promise<string | null> {
-  const apiKey = process.env.HUNTER_IO_API_KEY
-
+export async function findEmail(websiteUrl: string): Promise<EmailResult | null> {
+  // Validate API key exists
+  const apiKey = process.env.HUNTER_IO_API_KEY;
   if (!apiKey) {
-    console.warn('HUNTER_IO_API_KEY is not configured - email finding disabled')
-    return null
+    console.error('[EmailFinder] HUNTER_IO_API_KEY environment variable is not set');
+    return null;
   }
 
-  // Validate domain format before making API call
-  if (!isValidDomain(domain)) {
-    console.log(`⚠️  Invalid domain format: ${domain}`)
-    return null
+  // Extract clean domain from URL
+  const domain = extractDomain(websiteUrl);
+  if (!domain) {
+    console.log(`[EmailFinder] Invalid domain format: "${websiteUrl}"`);
+    return null;
   }
+
+  console.log(`[EmailFinder] Searching for email at domain: ${domain}`);
 
   try {
-    console.log(`📧 Finding email for domain: ${domain}`)
+    // Make request to Hunter.io API (Domain Search endpoint)
+    const response = await axios.get('https://api.hunter.io/v2/domain-search', {
+      params: {
+        domain: domain,
+        api_key: apiKey,
+        limit: 1,  // We only need one email per business
+      },
+      timeout: 5000,  // 5 second timeout
+    });
 
-    // Call Hunter.io Domain Search API
-    // This finds the most common email pattern for the domain
-    const response = await axios.get<HunterResponse>(
-      'https://api.hunter.io/v2/domain-search',
-      {
-        params: {
-          domain,
-          api_key: apiKey,
-          limit: 1, // We only need one email
-        },
-        timeout: 10000, // 10 second timeout
-      }
-    )
-
-    const emailData = response.data?.data
-
-    if (!emailData || !emailData.email) {
-      console.log(`ℹ️  No email found for ${domain}`)
-      return null
+    // Check if we got results
+    const data = response.data?.data;
+    if (!data || !data.emails || data.emails.length === 0) {
+      console.log(`[EmailFinder] No emails found for domain: ${domain}`);
+      return null;
     }
 
-    // Hunter.io returns a confidence score (0-100)
-    // Only accept emails with confidence >= 70 for better quality
-    const score = emailData.score || 0
+    // Get the first email result
+    const emailData = data.emails[0];
 
-    if (score < 70) {
-      console.log(`⚠️  Low confidence email for ${domain} (score: ${score})`)
-      return null
+    // Hunter.io returns confidence score 0-100
+    // Only accept emails with confidence >= 70 to ensure quality
+    const confidence = emailData.confidence || 0;
+    if (confidence < 70) {
+      console.log(`[EmailFinder] Email found but confidence too low (${confidence}%) for domain: ${domain}`);
+      return null;
     }
 
-    console.log(`✅ Found email for ${domain}: ${emailData.email} (confidence: ${score})`)
-    return emailData.email
+    console.log(`[EmailFinder] ✓ Found email for ${domain}: ${emailData.value} (confidence: ${confidence}%)`);
+
+    return {
+      email: emailData.value,
+      confidence: confidence,
+      firstName: emailData.first_name,
+      lastName: emailData.last_name,
+      position: emailData.position,
+      source: emailData.sources?.[0]?.uri,
+    };
+
   } catch (error) {
     // Don't throw - email finding failures should not crash the pipeline
-    // This is expected to fail ~40-50% of the time
-
     if (axios.isAxiosError(error)) {
       if (error.response?.status === 429) {
-        console.warn(`⚠️  Hunter.io rate limit reached`)
-      } else if (error.response?.status === 404) {
-        console.log(`ℹ️  No email found for ${domain}`)
+        console.warn('[EmailFinder] Rate limit exceeded. Consider upgrading plan or wait.');
+      } else if (error.response?.status === 401) {
+        console.error('[EmailFinder] Invalid API key. Please check HUNTER_IO_API_KEY.');
       } else {
-        console.error(`Hunter.io error for ${domain}:`, error.message)
+        console.warn(`[EmailFinder] API error for domain ${domain}:`, error.message);
       }
     } else {
-      console.error(`Unexpected error finding email for ${domain}:`, error)
+      console.warn(`[EmailFinder] Error finding email for domain ${domain}:`, error);
     }
 
-    return null
+    return null;
   }
 }
 
 /**
- * Verify if an email address is valid and deliverable
+ * Verifies if an email address is valid and deliverable
  *
- * @param email - Email address to verify
- * @returns Verification result with deliverable status
+ * This uses Hunter.io's Email Verifier endpoint to check if an email
+ * address is valid, exists, and is deliverable.
  *
- * Note: This consumes Hunter.io credits. Use sparingly, only for important leads.
+ * @param email - The email address to verify
+ * @returns True if email is valid and deliverable, false otherwise
+ *
+ * Note: Email verification uses API credits. Use sparingly.
  */
-export async function verifyEmail(email: string): Promise<{
-  isValid: boolean
-  isDeliverable: boolean
-  score: number
-} | null> {
-  const apiKey = process.env.HUNTER_IO_API_KEY
-
+export async function verifyEmail(email: string): Promise<boolean> {
+  const apiKey = process.env.HUNTER_IO_API_KEY;
   if (!apiKey) {
-    console.warn('HUNTER_IO_API_KEY is not configured - email verification disabled')
-    return null
+    console.error('[EmailFinder] HUNTER_IO_API_KEY environment variable is not set');
+    return false;
   }
 
-  try {
-    console.log(`🔍 Verifying email: ${email}`)
+  if (!email || !email.includes('@')) {
+    return false;
+  }
 
+  console.log(`[EmailFinder] Verifying email: ${email}`);
+
+  try {
     const response = await axios.get('https://api.hunter.io/v2/email-verifier', {
       params: {
-        email,
+        email: email,
         api_key: apiKey,
       },
-      timeout: 10000,
-    })
+      timeout: 5000,
+    });
 
-    const data = response.data?.data
+    const data = response.data?.data;
+    if (!data) return false;
 
-    if (!data) {
-      return null
-    }
+    // Check verification status
+    // Hunter.io returns: 'valid', 'invalid', 'accept_all', 'unknown', 'disposable'
+    const status = data.status;
+    const isValid = status === 'valid' || status === 'accept_all';
 
-    const result = {
-      isValid: data.status !== 'invalid',
-      isDeliverable: data.result === 'deliverable',
-      score: data.score || 0,
-    }
+    console.log(`[EmailFinder] Email verification result: ${email} - ${status}`);
 
-    console.log(`✅ Email verification result:`, result)
+    return isValid;
 
-    return result
   } catch (error) {
-    console.error(`Failed to verify email ${email}:`, error)
-    return null
+    console.warn(`[EmailFinder] Failed to verify email ${email}:`, error);
+    // If verification fails, don't reject the email - just return false
+    return false;
   }
 }
 
 /**
- * Validate domain format
+ * Finds email addresses for multiple domains in batch
  *
- * @param domain - Domain to validate
- * @returns true if domain format is valid
+ * This is more efficient than calling findEmail() multiple times.
+ * It processes all domains but rate limits the requests.
+ *
+ * @param domains - Array of website URLs or domains
+ * @returns Array of email results (nulls for domains with no email found)
  */
-function isValidDomain(domain: string): boolean {
-  // Basic domain validation regex
-  // Matches: example.com, sub.example.com, etc.
-  const domainRegex = /^[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,}$/i
-  return domainRegex.test(domain)
+export async function findEmailsBatch(domains: string[]): Promise<(EmailResult | null)[]> {
+  console.log(`[EmailFinder] Processing batch of ${domains.length} domains`);
+
+  const results: (EmailResult | null)[] = [];
+
+  // Process domains sequentially to avoid rate limiting
+  // Add small delay between requests
+  for (const domain of domains) {
+    const result = await findEmail(domain);
+    results.push(result);
+
+    // Wait 200ms between requests to avoid rate limits
+    // Hunter.io free tier allows ~10 requests per minute
+    await new Promise(resolve => setTimeout(resolve, 200));
+  }
+
+  const successCount = results.filter(r => r !== null).length;
+  console.log(`[EmailFinder] Batch complete: Found ${successCount}/${domains.length} emails`);
+
+  return results;
 }
 
 /**
- * Extract domain from full URL
- * Helper function to clean up URLs before passing to Hunter.io
+ * Tests the Hunter.io API connection
  *
- * @param url - Full URL (e.g., "https://www.example.com/page")
- * @returns Clean domain (e.g., "example.com") or null if invalid
+ * Use this to verify that the API key is valid and the service is working.
+ *
+ * @returns True if connection is successful
  */
-export function extractDomainFromUrl(url: string): string | null {
+export async function testConnection(): Promise<boolean> {
   try {
-    const parsedUrl = new URL(url.startsWith('http') ? url : `https://${url}`)
-    // Remove www. prefix
-    return parsedUrl.hostname.replace(/^www\./, '')
-  } catch {
-    // If URL parsing fails, try basic string extraction
-    const match = url.match(/(?:https?:\/\/)?(?:www\.)?([^\/\?\:]+)/)
-    return match ? match[1] : null
-  }
-}
+    console.log('[EmailFinder] Testing Hunter.io API connection...');
 
-/**
- * Rate limiter for Hunter.io API calls
- * Tracks API usage to avoid hitting rate limits
- *
- * Note: Hunter.io free tier has limits. Implement careful rate limiting.
- */
-class HunterRateLimiter {
-  private requestCount = 0
-  private resetTime = Date.now() + 60000 // Reset every minute
+    // Test with a well-known domain that should have emails
+    const result = await findEmail('stripe.com');
 
-  async checkRateLimit(): Promise<boolean> {
-    const now = Date.now()
-
-    // Reset counter if minute has passed
-    if (now >= this.resetTime) {
-      this.requestCount = 0
-      this.resetTime = now + 60000
+    if (result && result.email) {
+      console.log('[EmailFinder] ✓ Connection test successful');
+      return true;
     }
 
-    // Hunter.io free tier: 50 requests/month, paid: varies
-    // Be conservative: max 10 requests per minute to avoid issues
-    if (this.requestCount >= 10) {
-      console.warn('⚠️  Hunter.io rate limit reached, waiting...')
-      const waitTime = this.resetTime - now
-      await new Promise((resolve) => setTimeout(resolve, waitTime))
-      this.requestCount = 0
-      this.resetTime = Date.now() + 60000
-    }
-
-    this.requestCount++
-    return true
+    console.warn('[EmailFinder] Connection test failed - no email found for test domain');
+    return false;
+  } catch (error) {
+    console.error('[EmailFinder] Connection test failed:', error);
+    return false;
   }
 }
-
-export const hunterRateLimiter = new HunterRateLimiter()

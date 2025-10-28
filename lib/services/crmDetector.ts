@@ -1,282 +1,319 @@
 /**
- * CRM/Automation Detection Service
+ * CRM/Marketing Automation Detection Service
  *
- * Scrapes business websites to detect if they're already using CRM or marketing
- * automation tools. Businesses without these tools are higher-quality leads.
+ * This service scrapes business websites to detect if they're using
+ * CRM or marketing automation tools. This is a key qualifier - businesses
+ * WITHOUT automation are higher priority leads.
  *
- * Expected success rate: 70-80% (websites can be slow/unreachable)
+ * Detection Method: Analyzes website HTML for common CRM/automation scripts and tracking pixels
  *
- * Detection method: Search website HTML for known CRM/automation tool scripts and identifiers
+ * Expected Success Rate: 70-80% of websites will be reachable and scannable
+ * Failures are normal - websites can be slow, unreachable, or block scraping
+ *
+ * Important: Website scraping failures should NOT block the pipeline.
+ * If a website can't be reached, assume NO CRM (return false).
  */
 
-import axios from 'axios'
-import * as cheerio from 'cheerio'
+import axios from 'axios';
+import * as cheerio from 'cheerio';
 
 /**
  * Interface for CRM detection result
  */
 export interface CRMDetectionResult {
-  hasAutomation: boolean
-  detectedTools: string[]
-  checkedAt: Date
+  hasAutomation: boolean;        // True if any CRM/automation detected
+  detectedTools: string[];       // List of detected tool names
+  confidence: number;            // 0-100, how confident we are in the detection
+  checkedAt: Date;               // When the check was performed
 }
 
 /**
  * List of CRM and marketing automation tools to detect
- * Each tool has identifying strings found in their script URLs or code
+ * Each entry contains the tool name and patterns to look for in the HTML
  */
-const CRM_SIGNATURES = {
-  HubSpot: ['hs-scripts.com', 'hsforms.net', 'hubspot.com/api'],
-  Mailchimp: ['list-manage.com', 'mc.js', 'mailchimp.com/'],
-  ActiveCampaign: ['activehosted.com', 'actid', 'active campaign'],
-  Klaviyo: ['klaviyo.com', 'klaviyo', 'kl.js'],
-  ConvertKit: ['convertkit.com', 'ck.page'],
-  Drip: ['drip.com', 'drip.js'],
-  'Constant Contact': ['constantcontact.com', 'ctct.net'],
-  SendGrid: ['sendgrid.net', 'sendgrid.com'],
-  Intercom: ['intercom.io', 'intercom.com', 'widget.intercom'],
-  Drift: ['drift.com', 'driftt.com', 'drift.js'],
-  Salesforce: ['salesforce.com', 'force.com', 'salesforceliveagent'],
-  Pipedrive: ['pipedrive.com', 'pipedrivecdn'],
-  Zoho: ['zoho.com', 'zohopublic', 'salesiq.zoho'],
-  Freshworks: ['freshworks.com', 'freshchat.com', 'freshsales'],
-  GetResponse: ['getresponse.com', 'gr-cdn.com'],
-  AWeber: ['aweber.com', 'aweber-static.com'],
-  Autopilot: ['autopilot.com', 'autopilothq'],
-  'Marketing Cloud': ['exacttarget.com', 'marketingcloud'],
-  Pardot: ['pardot.com', 'pi.pardot'],
-  Marketo: ['marketo.com', 'marketo.net', 'munchkin'],
-}
+const CRM_PATTERNS = [
+  {
+    name: 'HubSpot',
+    patterns: ['hs-scripts.com', 'hsforms.net', 'hubspot.com/api', 'hbspt.forms', '_hsq'],
+  },
+  {
+    name: 'Mailchimp',
+    patterns: ['list-manage.com', 'mc.js', 'mailchimp.com', 'chimpstatic.com'],
+  },
+  {
+    name: 'ActiveCampaign',
+    patterns: ['activehosted.com', 'activecampaign.com', 'actid', 'vgo('],
+  },
+  {
+    name: 'Klaviyo',
+    patterns: ['klaviyo.com', 'klaviyo', 'static.klaviyo.com'],
+  },
+  {
+    name: 'ConvertKit',
+    patterns: ['convertkit.com', 'ck.page', 'app.convertkit.com'],
+  },
+  {
+    name: 'Drip',
+    patterns: ['drip.com', 'getdrip.com', '_dcq'],
+  },
+  {
+    name: 'Constant Contact',
+    patterns: ['constantcontact.com', 'ctctcdn.com'],
+  },
+  {
+    name: 'SendGrid',
+    patterns: ['sendgrid.net', 'sendgrid.com'],
+  },
+  {
+    name: 'Intercom',
+    patterns: ['intercom.io', 'intercom.com', 'widget.intercom.io', 'Intercom('],
+  },
+  {
+    name: 'Drift',
+    patterns: ['drift.com', 'driftt.com', 'js.driftt.com'],
+  },
+  {
+    name: 'Salesforce',
+    patterns: ['salesforce.com', 'pardot.com', 'force.com'],
+  },
+  {
+    name: 'Marketo',
+    patterns: ['marketo.com', 'munchkin', 'marketo.net'],
+  },
+  {
+    name: 'GetResponse',
+    patterns: ['getresponse.com', 'gr-api'],
+  },
+  {
+    name: 'MailerLite',
+    patterns: ['mailerlite.com', 'ml-cdn.com'],
+  },
+  {
+    name: 'AWeber',
+    patterns: ['aweber.com', 'forms.aweber.com'],
+  },
+];
 
 /**
- * Detect CRM/automation tools on a website
+ * Detects CRM and marketing automation tools on a website
  *
- * @param websiteUrl - Full website URL to check
- * @returns Detection result with list of found tools
+ * This function fetches the website HTML and searches for known CRM scripts
+ * and tracking pixels. It handles timeouts, errors, and unreachable sites gracefully.
  *
- * Note: This function can fail for many reasons (timeout, CORS, website down).
- * Failures should not block lead processing. Return hasAutomation: false if unable to check.
+ * @param websiteUrl - The business website URL
+ * @returns Detection result with tools found and confidence score
+ *
+ * @example
+ * const result = await detectCRM("https://example.com");
+ * if (result.hasAutomation) {
+ *   console.log(`Found automation tools: ${result.detectedTools.join(', ')}`);
+ * } else {
+ *   console.log('No automation detected - good lead!');
+ * }
+ *
+ * Note: If website can't be reached, returns { hasAutomation: false }
+ * This is intentional - unreachable sites don't block the pipeline.
  */
 export async function detectCRM(websiteUrl: string): Promise<CRMDetectionResult> {
+  const defaultResult: CRMDetectionResult = {
+    hasAutomation: false,
+    detectedTools: [],
+    confidence: 0,
+    checkedAt: new Date(),
+  };
+
   // Validate URL
-  if (!websiteUrl || !isValidUrl(websiteUrl)) {
-    console.log(`⚠️  Invalid URL: ${websiteUrl}`)
-    return {
-      hasAutomation: false,
-      detectedTools: [],
-      checkedAt: new Date(),
-    }
+  if (!websiteUrl || typeof websiteUrl !== 'string') {
+    console.log('[CRMDetector] Invalid website URL provided');
+    return defaultResult;
   }
 
-  try {
-    console.log(`🔍 Checking CRM tools on: ${websiteUrl}`)
+  // Ensure URL has protocol
+  let url = websiteUrl;
+  if (!url.startsWith('http://') && !url.startsWith('https://')) {
+    url = 'https://' + url;
+  }
 
-    // Fetch website HTML with generous timeout (10 seconds)
-    // Many small business websites are slow
-    const response = await axios.get(websiteUrl, {
-      timeout: 10000,
+  console.log(`[CRMDetector] Checking website: ${url}`);
+
+  try {
+    // Fetch website HTML with 10 second timeout
+    // Some small business websites are slow - be patient but not too patient
+    const response = await axios.get(url, {
+      timeout: 10000,  // 10 seconds
       maxRedirects: 5,
       headers: {
-        'User-Agent':
-          'Mozilla/5.0 (compatible; LeadFinderBot/1.0; +https://leadfinderpro.com/bot)',
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+        'Accept': 'text/html,application/xhtml+xml',
       },
-      // Don't fail on bad SSL certificates (common with small businesses)
-      httpsAgent: new (require('https').Agent)({
-        rejectUnauthorized: false,
-      }),
-    })
+      validateStatus: (status) => status < 400,  // Accept any non-error status
+    });
 
-    const html = response.data
-    const $ = cheerio.load(html)
+    // Get HTML content
+    const html = response.data;
+    if (!html || typeof html !== 'string') {
+      console.log(`[CRMDetector] No HTML content received from ${url}`);
+      return defaultResult;
+    }
 
-    // Get all script sources and inline scripts
-    const scripts: string[] = []
+    // Parse HTML with cheerio
+    const $ = cheerio.load(html);
 
-    // External scripts
-    $('script[src]').each((_, el) => {
-      const src = $(el).attr('src')
-      if (src) scripts.push(src.toLowerCase())
-    })
+    // Get all script tags and HTML content for analysis
+    const scripts = .map((i, el) => .html() || '').get().join(' ');
+    const fullHtml = html.toLowerCase();
 
-    // Inline scripts
-    $('script:not([src])').each((_, el) => {
-      const content = $(el).html()
-      if (content) scripts.push(content.toLowerCase())
-    })
+    // Check for each CRM tool
+    const detectedTools: string[] = [];
+    const matches: { tool: string; matchCount: number }[] = [];
 
-    // Also check meta tags and links (some tools inject there)
-    const metaContent: string[] = []
-    $('meta, link').each((_, el) => {
-      const content = $(el).attr('content') || $(el).attr('href') || ''
-      metaContent.push(content.toLowerCase())
-    })
+    for (const tool of CRM_PATTERNS) {
+      let matchCount = 0;
 
-    // Combine all content to search
-    const allContent = [...scripts, ...metaContent, html.toLowerCase()].join(' ')
+      // Check if any of this tool's patterns exist in the HTML
+      for (const pattern of tool.patterns) {
+        const patternLower = pattern.toLowerCase();
 
-    // Check for each CRM signature
-    const detectedTools: string[] = []
+        // Check in scripts
+        if (scripts.toLowerCase().includes(patternLower)) {
+          matchCount++;
+        }
 
-    for (const [toolName, signatures] of Object.entries(CRM_SIGNATURES)) {
-      const found = signatures.some((sig) => allContent.includes(sig.toLowerCase()))
+        // Check in full HTML
+        if (fullHtml.includes(patternLower)) {
+          matchCount++;
+        }
+      }
 
-      if (found) {
-        detectedTools.push(toolName)
-        console.log(`✅ Detected ${toolName} on ${websiteUrl}`)
+      // If we found at least 2 matches (for confidence), consider it detected
+      if (matchCount >= 2) {
+        detectedTools.push(tool.name);
+        matches.push({ tool: tool.name, matchCount });
       }
     }
 
-    const result = {
-      hasAutomation: detectedTools.length > 0,
-      detectedTools,
-      checkedAt: new Date(),
-    }
-
+    // Calculate confidence based on number of matches
+    let confidence = 0;
     if (detectedTools.length > 0) {
-      console.log(`🤖 Website has automation: ${detectedTools.join(', ')}`)
-    } else {
-      console.log(`✨ No automation detected - good lead!`)
+      // Average match count across detected tools
+      const avgMatches = matches.reduce((sum, m) => sum + m.matchCount, 0) / matches.length;
+      confidence = Math.min(Math.round((avgMatches / 5) * 100), 100);
     }
 
-    return result
-  } catch (error) {
-    // Website unreachable, timeout, or other error
-    // Don't throw - this should not block the pipeline
-    // Assume no CRM if we can't check (benefit of the doubt)
+    const hasAutomation = detectedTools.length > 0;
 
+    if (hasAutomation) {
+      console.log(`[CRMDetector] ✓ Found automation on ${url}: ${detectedTools.join(', ')} (confidence: ${confidence}%)`);
+    } else {
+      console.log(`[CRMDetector] ✓ No automation detected on ${url} - good lead!`);
+    }
+
+    return {
+      hasAutomation,
+      detectedTools,
+      confidence,
+      checkedAt: new Date(),
+    };
+
+  } catch (error) {
+    // Don't throw - website issues should not crash the pipeline
     if (axios.isAxiosError(error)) {
-      if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT') {
-        console.log(`⏱️  Timeout checking ${websiteUrl}`)
+      if (error.code === 'ECONNABORTED') {
+        console.log(`[CRMDetector] Timeout checking ${url} (website too slow)`);
+      } else if (error.code === 'ENOTFOUND') {
+        console.log(`[CRMDetector] Website not found: ${url}`);
       } else if (error.response?.status === 403 || error.response?.status === 401) {
-        console.log(`🚫 Access denied for ${websiteUrl}`)
-      } else if (error.response?.status === 404) {
-        console.log(`❌ Website not found: ${websiteUrl}`)
+        console.log(`[CRMDetector] Access denied to ${url} (blocked or requires auth)`);
       } else {
-        console.log(`⚠️  Error checking ${websiteUrl}: ${error.message}`)
+        console.log(`[CRMDetector] Error checking ${url}: ${error.message}`);
       }
     } else {
-      console.log(`⚠️  Unexpected error checking ${websiteUrl}`)
+      console.log(`[CRMDetector] Unexpected error checking ${url}:`, error);
     }
 
-    // Return no automation detected if unable to check
-    // This gives the lead benefit of the doubt
-    return {
-      hasAutomation: false,
-      detectedTools: [],
-      checkedAt: new Date(),
-    }
+    // Return default (no automation) if website can't be checked
+    // This ensures unreachable websites don't get marked as having automation
+    return defaultResult;
   }
 }
 
 /**
- * Validate URL format
+ * Checks multiple websites for CRM tools in batch
  *
- * @param url - URL to validate
- * @returns true if URL is valid
+ * Processes all websites but adds small delays to avoid hammering servers.
+ *
+ * @param websiteUrls - Array of website URLs to check
+ * @returns Array of detection results
  */
-function isValidUrl(url: string): boolean {
+export async function detectCRMBatch(websiteUrls: string[]): Promise<CRMDetectionResult[]> {
+  console.log(`[CRMDetector] Processing batch of ${websiteUrls.length} websites`);
+
+  const results: CRMDetectionResult[] = [];
+
+  // Process websites sequentially with small delays
+  // This prevents overwhelming servers and getting blocked
+  for (const url of websiteUrls) {
+    const result = await detectCRM(url);
+    results.push(result);
+
+    // Wait 500ms between requests to be respectful
+    await new Promise(resolve => setTimeout(resolve, 500));
+  }
+
+  const automationCount = results.filter(r => r.hasAutomation).length;
+  console.log(`[CRMDetector] Batch complete: Found automation on ${automationCount}/${websiteUrls.length} websites`);
+
+  return results;
+}
+
+/**
+ * Tests the CRM detector with a known website
+ *
+ * Use this to verify the detector is working correctly.
+ *
+ * @returns True if test passes
+ */
+export async function testDetection(): Promise<boolean> {
   try {
-    // Ensure URL has protocol
-    const urlToTest = url.startsWith('http') ? url : `https://${url}`
-    new URL(urlToTest)
-    return true
-  } catch {
-    return false
-  }
-}
+    console.log('[CRMDetector] Testing CRM detection...');
 
-/**
- * Normalize URL for consistent checking
- * Adds https:// if missing and removes trailing slashes
- *
- * @param url - URL to normalize
- * @returns Normalized URL
- */
-export function normalizeUrl(url: string): string {
-  let normalized = url.trim()
+    // Test with a website known to use HubSpot
+    const result = await detectCRM('https://www.hubspot.com');
 
-  // Add https:// if no protocol
-  if (!normalized.startsWith('http://') && !normalized.startsWith('https://')) {
-    normalized = `https://${normalized}`
-  }
-
-  // Remove trailing slash
-  normalized = normalized.replace(/\/$/, '')
-
-  return normalized
-}
-
-/**
- * Cache for CRM detection results to avoid re-checking same domains
- * Key: domain, Value: detection result
- *
- * Note: In production, this should be stored in database or Redis
- * For MVP, an in-memory cache is sufficient
- */
-class CRMDetectionCache {
-  private cache = new Map<string, CRMDetectionResult>()
-  private maxAge = 7 * 24 * 60 * 60 * 1000 // 7 days
-
-  get(domain: string): CRMDetectionResult | null {
-    const cached = this.cache.get(domain)
-
-    if (!cached) return null
-
-    // Check if cache is still valid
-    const age = Date.now() - cached.checkedAt.getTime()
-
-    if (age > this.maxAge) {
-      this.cache.delete(domain)
-      return null
+    if (result.hasAutomation && result.detectedTools.includes('HubSpot')) {
+      console.log('[CRMDetector] ✓ Test passed - correctly detected HubSpot');
+      return true;
     }
 
-    return cached
-  }
-
-  set(domain: string, result: CRMDetectionResult): void {
-    this.cache.set(domain, result)
-  }
-
-  clear(): void {
-    this.cache.clear()
-  }
-
-  size(): number {
-    return this.cache.size
+    console.warn('[CRMDetector] Test failed - did not detect expected automation');
+    return false;
+  } catch (error) {
+    console.error('[CRMDetector] Test failed:', error);
+    return false;
   }
 }
 
-export const crmDetectionCache = new CRMDetectionCache()
+/**
+ * Gets a cached result for a domain to avoid re-checking
+ * (To be implemented with actual caching later)
+ *
+ * @param domain - The domain to check cache for
+ * @returns Cached result or null
+ */
+export async function getCachedResult(domain: string): Promise<CRMDetectionResult | null> {
+  // TODO: Implement caching using Redis or database
+  // For now, always return null (no cache)
+  return null;
+}
 
 /**
- * Detect CRM with caching
- * Checks cache first before making HTTP request
+ * Saves a detection result to cache
+ * (To be implemented with actual caching later)
  *
- * @param websiteUrl - Website URL to check
- * @returns Detection result (from cache or fresh check)
+ * @param domain - The domain
+ * @param result - The detection result to cache
  */
-export async function detectCRMCached(websiteUrl: string): Promise<CRMDetectionResult> {
-  // Extract domain for cache key
-  try {
-    const url = new URL(websiteUrl.startsWith('http') ? websiteUrl : `https://${websiteUrl}`)
-    const domain = url.hostname
-
-    // Check cache first
-    const cached = crmDetectionCache.get(domain)
-    if (cached) {
-      console.log(`💾 Using cached CRM detection for ${domain}`)
-      return cached
-    }
-
-    // Not in cache, do fresh check
-    const result = await detectCRM(websiteUrl)
-
-    // Cache the result
-    crmDetectionCache.set(domain, result)
-
-    return result
-  } catch {
-    // If URL parsing fails, just do fresh check without caching
-    return detectCRM(websiteUrl)
-  }
+export async function cacheResult(domain: string, result: CRMDetectionResult): Promise<void> {
+  // TODO: Implement caching using Redis or database
+  // For now, do nothing
 }
