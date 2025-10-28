@@ -50,6 +50,16 @@ export default async function DashboardPage() {
 
       {/* Main Content */}
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        {/* Action Button */}
+        <div className="mb-6">
+          <a
+            href="/search"
+            className="inline-flex items-center justify-center rounded-md bg-indigo-600 px-6 py-3 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+          >
+            🔍 Start New Search
+          </a>
+        </div>
+
         {/* Welcome Card */}
         <div className="rounded-lg bg-white p-6 shadow mb-6">
           <h2 className="text-2xl font-semibold text-gray-900 mb-2">
