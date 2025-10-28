@@ -45,7 +45,8 @@ interface SearchInfo {
   createdAt: string;
 }
 
-export default function DashboardPage() {
+// Dashboard content component that uses useSearchParams
+function DashboardContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const searchId = searchParams.get('search');
@@ -482,5 +483,21 @@ function LeadCard({ lead }: { lead: Lead }) {
         </div>
       </div>
     </div>
+  );
+}
+
+// Main dashboard page with Suspense boundary
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading dashboard...</p>
+        </div>
+      </div>
+    }>
+      <DashboardContent />
+    </Suspense>
   );
 }
