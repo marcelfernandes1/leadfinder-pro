@@ -2,6 +2,173 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Quick Reference
+
+### Common Commands
+```bash
+# Development server (runs on port 3001, not 3000)
+npm run dev
+
+# Build for production
+npm run build
+
+# Run production build locally
+npm run start
+
+# Lint code
+npm run lint
+
+# Test (not yet configured)
+npm test
+```
+
+### Checking Background Processes
+Multiple dev server instances may be running. Check their status with the BashOutput tool using these shell IDs (if they exist):
+- Look for "npm run dev" processes
+- The latest one is usually the active development server
+
+### Quick Testing
+```bash
+# Test Supabase connection
+curl http://localhost:3001/api/test
+
+# Test Inngest connection
+curl http://localhost:3001/api/inngest
+
+# Test search endpoint (requires auth)
+curl -X POST http://localhost:3001/api/search
+```
+
+### Tech Version Notes
+**IMPORTANT: This project uses bleeding-edge versions:**
+- **Next.js 16.0.0** (with Turbopack) - Not the 14.x mentioned in older docs
+- **React 19.2.0** - Latest version with breaking changes from React 18
+- **Tailwind CSS 4.1.16** - v4, not v3 (different configuration)
+- **TypeScript 5.9.3**
+- **Zod 4.1.12** - v4, not v3 (API differences)
+
+⚠️ **When searching for solutions online, always specify the correct version numbers to avoid outdated answers.**
+
+### Known Issues & Workarounds
+
+1. **Next.js 16 Changes:**
+   - Uses Turbopack by default in development
+   - Some API route patterns may differ from Next.js 14 tutorials
+   - Check Next.js 16 migration guide if issues arise
+
+2. **React 19 Changes:**
+   - Server Components are more strict
+   - Some hooks behavior may differ
+   - Client components must explicitly use 'use client' directive
+
+3. **Tailwind CSS v4:**
+   - Configuration uses `@tailwindcss/postcss` plugin
+   - Some class names or patterns may differ from v3 tutorials
+   - Check Tailwind v4 docs for breaking changes
+
+4. **Proxy.ts Warnings:**
+   - You may see "proxy.ts" in dev server logs
+   - This is a Next.js internal mechanism for handling requests
+   - Can be safely ignored unless there are actual errors
+
+5. **Foreign Key Constraint Errors:**
+   - Test searches may fail with FK constraint errors
+   - Need valid user profile before creating searches
+   - Always authenticate before testing search functionality
+
+### Debugging & Development Tips
+
+**Common Development Tasks:**
+
+1. **Kill all dev server instances:**
+   ```bash
+   # Find all node processes running Next.js
+   ps aux | grep "next dev"
+
+   # Kill specific process
+   kill -9 <PID>
+
+   # Or kill all node processes (nuclear option)
+   pkill -f "next dev"
+   ```
+
+2. **Clear Next.js cache:**
+   ```bash
+   rm -rf .next
+   npm run dev
+   ```
+
+3. **Check Supabase connection:**
+   - Verify `.env.local` has correct `NEXT_PUBLIC_SUPABASE_URL` and keys
+   - Test with: `curl http://localhost:3001/api/test`
+   - Check Supabase dashboard for RLS policy issues
+
+4. **Debug Inngest functions:**
+   - Inngest logs appear in dev server output (PUT /api/inngest)
+   - Check Inngest dashboard for function run history
+   - Use `console.log` liberally in Inngest functions
+   - Test with: `curl http://localhost:3001/api/test-inngest`
+
+5. **Debug authentication issues:**
+   - Check if user is in `profiles` table (Supabase dashboard)
+   - Verify RLS policies allow the user to access data
+   - Check browser cookies for Supabase session
+   - Test auth callback URL is configured correctly
+
+6. **Database debugging:**
+   - Use Supabase SQL Editor to run queries directly
+   - Check RLS policies in Table Editor → Policies tab
+   - Verify foreign key constraints (searches require valid user_id)
+   - Use Supabase logs to see actual SQL queries
+
+7. **Common error patterns:**
+   - "Foreign key constraint violation" → Need to create profile first
+   - "401 Unauthorized" → User not authenticated or session expired
+   - "404 on /api/search" → Using GET instead of POST
+   - "proxy.ts: XXXms" in logs → Normal, can be ignored
+   - Turbopack compilation errors → Try clearing .next folder
+
+**Performance Tips:**
+- Dev server with Turbopack is fast, but initial compilation can take time
+- Hot reload should work automatically for most changes
+- If changes don't appear, check browser console for errors
+- Database queries should be fast (<100ms) - check indexes if slow
+
+### Current Implementation Status
+
+**✅ Completed (as of latest commit):**
+- Next.js 16 project setup with TypeScript
+- Supabase client configuration (client-side, server-side, middleware)
+- Supabase PostgreSQL database with all tables (profiles, searches, leads, lead_status)
+- Row Level Security (RLS) policies on all tables
+- Authentication pages (login, signup, callback)
+- Search form page with validation
+- Loading animation page with progress tracking
+- Dashboard with lead display, filtering, and sorting
+- Google Maps API integration for business discovery
+- Hunter.io email finding service
+- Custom CRM detection service
+- Probability score calculator
+- Inngest background job processing setup
+- Inngest functions for lead discovery and enrichment
+- API endpoints: /api/search, /api/search/[id]/status, /api/search/[id]/results
+- Development environment running on port 3001
+
+**🚧 In Progress:**
+- Testing and debugging search flow
+- Social media discovery (Apify integration - skipped for MVP)
+- Celebration screen implementation
+- CSV export functionality
+- Usage limits enforcement
+
+**⏳ Not Started:**
+- Stripe payment integration
+- Account settings page
+- Search history page
+- Bulk lead operations
+- Production deployment
+- Beta testing
+
 ## Project Overview
 
 LeadFinder Pro is a web-based lead generation tool that helps CRM/marketing automation consultants find qualified service-based local businesses. The application automatically discovers leads with contact information and buying probability scores, wrapped in a dopamine-optimized UI.
@@ -13,12 +180,13 @@ LeadFinder Pro is a web-based lead generation tool that helps CRM/marketing auto
 ## Tech Stack
 
 ### Frontend
-- **Next.js 14** (App Router) - React framework with built-in API routes
-- **TypeScript** - Type safety throughout
-- **Tailwind CSS** - Utility-first styling
-- **Framer Motion** - Animation library for loading sequences
-- **react-confetti** - Celebration effects
-- **react-hook-form + Zod** - Form validation
+- **Next.js 16.0.0** (App Router with Turbopack) - React framework with built-in API routes
+- **React 19.2.0** - Latest React with server components
+- **TypeScript 5.9.3** - Type safety throughout
+- **Tailwind CSS 4.1.16** - Utility-first styling (v4)
+- **Framer Motion 12.23.24** - Animation library for loading sequences
+- **react-confetti 6.4.0** - Celebration effects
+- **react-hook-form 7.65.0 + Zod 4.1.12** - Form validation
 
 ### Backend
 - **Next.js API Routes** - Serverless API endpoints
@@ -140,24 +308,36 @@ Usage limit check happens BEFORE search starts. Increment `profiles.leads_used_t
 
 ## Development Workflow
 
-### Initial Setup
+### Initial Setup (✅ Already Completed)
+The project has already been initialized with all core dependencies. If you need to set up a fresh environment:
+
 ```bash
-# Initialize Next.js project
-npx create-next-app@latest leadfinder-pro --typescript --tailwind --app --eslint
+# Clone and install
+git clone <repository-url>
+cd leadfinder-pro
+npm install
 
-# Install dependencies
-npm install @supabase/supabase-js @supabase/ssr
-npm install inngest
-npm install stripe @stripe/stripe-js
-npm install react-hook-form zod @hookform/resolvers
-npm install framer-motion react-confetti
-npm install axios cheerio
-npm install json2csv
-npm install @googlemaps/google-maps-services-js
-
-# Dev dependencies
-npm install --save-dev jest @testing-library/react @testing-library/jest-dom
+# Copy environment variables
+cp .env.example .env.local
+# Edit .env.local with your actual API keys
 ```
+
+**Already installed dependencies (as of current package.json):**
+- ✅ Next.js 16.0.0, React 19.2.0, TypeScript 5.9.3
+- ✅ Tailwind CSS 4.1.16 with PostCSS
+- ✅ Supabase client (@supabase/supabase-js, @supabase/ssr)
+- ✅ Inngest 3.44.3
+- ✅ Stripe (stripe, @stripe/stripe-js)
+- ✅ Form handling (react-hook-form 7.65.0, zod 4.1.12, @hookform/resolvers)
+- ✅ Animations (framer-motion 12.23.24, react-confetti 6.4.0)
+- ✅ HTTP & scraping (axios 1.13.0, cheerio 1.1.2)
+- ✅ CSV export (json2csv 6.0.0-alpha.2)
+- ✅ Google Maps (@googlemaps/google-maps-services-js 3.4.2)
+
+**Not yet installed:**
+- Testing libraries (jest, @testing-library/react, @testing-library/jest-dom)
+
+**Note:** If you add new dependencies, remember to commit the updated package.json and package-lock.json.
 
 ### Environment Variables
 Create `.env.local` with:
@@ -188,8 +368,9 @@ INNGEST_SIGNING_KEY=
 
 ### Running the Application
 ```bash
-# Development server
+# Development server (runs on port 3001)
 npm run dev
+# Access at: http://localhost:3001
 
 # Build for production
 npm run build
@@ -199,6 +380,17 @@ npm run start
 
 # Lint code
 npm run lint
+```
+
+**Important:** This project runs on port **3001** (not the default 3000). This is configured in `package.json` as `"dev": "next dev -p 3001"`.
+
+If you see "port already in use" errors:
+```bash
+# Find what's using port 3001
+lsof -ti:3001
+
+# Kill the process
+kill -9 $(lsof -ti:3001)
 ```
 
 ### Testing
@@ -268,40 +460,74 @@ npm test path/to/test-file.test.ts
 
 ### Code Organization
 
+**Current Structure (as implemented):**
 ```
-/app
-  /auth              - Login, signup, callback pages
-  /search            - Search form page
-  /dashboard         - Main dashboard with lead list
-  /account           - User account and settings
-  /pricing           - Pricing page with Stripe integration
+/app                          # Next.js 16 App Router
+  layout.tsx                  # Root layout with metadata
+  page.tsx                    # Landing page
+  /auth
+    /login/page.tsx           # ✅ Login page
+    /signup/page.tsx          # ✅ Signup page
+    /callback/route.ts        # ✅ Auth callback handler
+  /search
+    page.tsx                  # ✅ Search form page
+    /[searchId]
+      /loading/page.tsx       # ✅ Loading animation
+  /dashboard
+    page.tsx                  # ✅ Main dashboard (embedded lead cards)
   /api
-    /search          - Search creation and status endpoints
-    /leads           - Lead CRUD and bulk operations
-    /stripe          - Stripe checkout, webhook, portal
-    /inngest         - Inngest webhook endpoint
+    /auth
+      /signout/route.ts       # ✅ Signout endpoint
+    /search
+      route.ts                # ✅ POST - Create search
+      /[searchId]
+        /status/route.ts      # ✅ GET - Search progress
+        /results/route.ts     # ✅ GET - Search results
+    /inngest
+      route.ts                # ✅ Inngest webhook endpoint
+    /test/route.ts            # ✅ Test endpoint
+    /test-inngest/route.ts    # ✅ Inngest test endpoint
 
-/components
-  /LeadCard.tsx      - Individual lead display (break into subcomponents)
-  /LoadingAnimation.tsx
-  /CelebrationScreen.tsx
-  /Navbar.tsx
-  /Sidebar.tsx
+/components                   # Currently empty - components embedded in pages
+  (Future: LeadCard, Navbar, etc.)
 
 /lib
-  /supabase          - Supabase client setup (client.ts, server.ts, middleware.ts)
-  /services          - External API integrations
-    /googleMaps.ts   - Google Maps Places API
-    /emailFinder.ts  - Hunter.io integration
-    /socialMedia.ts  - Apify social scraping
-    /crmDetector.ts  - Custom website scraping
-    /leadOrchestrator.ts - Main search coordinator
-  /utils             - Helper functions
-    /scoreCalculator.ts - Probability score calculation
-    /checkUsageLimits.ts - Subscription tier enforcement
+  /supabase
+    client.ts                 # ✅ Client-side Supabase client
+    server.ts                 # ✅ Server-side Supabase client
+    middleware.ts             # ✅ Auth middleware
+  /services
+    googleMaps.ts             # ✅ Google Maps Places API integration
+    emailFinder.ts            # ✅ Hunter.io email finding
+    crmDetector.ts            # ✅ Custom CRM detection
+  /inngest
+    client.ts                 # ✅ Inngest client
+    functions.ts              # ✅ Function exports
+    /functions
+      discoverLeads.ts        # ✅ Main lead discovery orchestrator
+      index.ts                # ✅ Function exports
+  /utils
+    scoreCalculator.ts        # ✅ Probability score calculation
 
-/types               - TypeScript type definitions
-/hooks               - Custom React hooks
+/types
+  database.ts                 # ✅ Database type definitions
+
+/hooks                        # Not yet created
+```
+
+**Planned Structure (not yet implemented):**
+```
+/components
+  /LeadCard.tsx              - Individual lead display
+  /Navbar.tsx                - Navigation bar
+  /Sidebar.tsx               - Dashboard sidebar
+
+/app
+  /account                   - User account and settings
+  /pricing                   - Pricing page with Stripe
+  /api
+    /leads                   - Lead CRUD operations
+    /stripe                  - Stripe checkout, webhook, portal
 ```
 
 ### Component Guidelines
@@ -326,9 +552,35 @@ Test each step before moving to the next. Don't try to build everything at once.
 
 ## Project Status
 
-This is a **greenfield project** with no existing codebase. Follow the comprehensive implementation plan in `to-do.md` which breaks down all 55 tasks across 8 weeks.
+**Current Phase:** Mid-development (Weeks 2-4) - Core features implemented, testing and refinement in progress.
 
-**Current Phase:** Planning complete, ready for Week 1 implementation (project setup, Supabase, authentication, external API setup).
+**Progress Summary:**
+- ✅ Week 1 tasks mostly complete (project setup, Supabase, auth, external API setup)
+- ✅ Weeks 2-3 tasks partially complete (Google Maps integration, lead discovery, UI pages)
+- 🚧 Week 4 tasks in progress (testing, refinement, bug fixes)
+- ⏳ Weeks 5-8 not started (payment integration, advanced features, deployment)
+
+**What's Working:**
+- User authentication (signup, login, logout)
+- Search form with validation
+- Google Maps business discovery
+- Email finding via Hunter.io
+- CRM detection via website scraping
+- Probability score calculation
+- Background job processing via Inngest
+- Dashboard with lead filtering and sorting
+- Loading animations
+
+**What Needs Work:**
+- End-to-end testing of search flow
+- Celebration screen implementation
+- CSV export functionality
+- Social media discovery (Apify) - may skip for MVP
+- Usage limits enforcement
+- Payment integration (Stripe)
+- Production deployment
+
+Follow the comprehensive implementation plan in `to-do.md` which breaks down all 55 tasks across 8 weeks. Update tasks as completed using the checklist format.
 
 ## Reference Documentation
 
