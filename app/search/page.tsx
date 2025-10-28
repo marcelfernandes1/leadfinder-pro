@@ -12,6 +12,9 @@
 
 'use client'
 
+// Force dynamic rendering - don't prerender during build
+export const dynamic = 'force-dynamic'
+
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
