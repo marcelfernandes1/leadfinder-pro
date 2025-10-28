@@ -341,11 +341,43 @@ This is a **greenfield project** with no existing codebase. Follow the comprehen
 
 ## AI Development Rules
 
+### Git Workflow - CRITICAL
+**PUSH TO GITHUB FREQUENTLY** to enable easy rollback when needed:
+
+1. **After completing each major task or section**, create a commit:
+   ```bash
+   git add .
+   git commit -m "Descriptive message about what was completed"
+   git push origin main
+   ```
+
+2. **Commit frequency guidelines:**
+   - After completing any section from to-do.md (e.g., "Initial Project Setup")
+   - After implementing a complete feature (e.g., "Authentication pages")
+   - After fixing bugs or making significant changes
+   - Before starting a risky or experimental change
+   - At the end of each development session
+
+3. **Commit message format:**
+   - Use clear, descriptive messages
+   - Example: "feat: add Supabase client setup and auth middleware"
+   - Example: "fix: update proxy.ts for Next.js 16 compatibility"
+   - Example: "docs: add Supabase setup instructions"
+
+4. **Why this matters:**
+   - Enables easy rollback if something breaks
+   - Creates checkpoint history for the project
+   - Allows reviewing what was done when
+   - Makes it easy to compare working vs broken states
+
+**IMPORTANT:** Push frequently - better to have too many commits than too few!
+
 ### Task Tracking
 **CRITICAL:** When completing any task from `to-do.md`, you MUST:
 1. Mark the task as completed by changing `- [ ]` to `- [x]`
 2. Update the task in the to-do.md file immediately after completion
 3. This helps track progress and shows what has been accomplished
+4. **After updating to-do.md, commit and push the changes**
 
 Example:
 ```markdown

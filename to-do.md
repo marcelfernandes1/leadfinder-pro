@@ -35,16 +35,16 @@
 ## Project Setup & Architecture (Week 1)
 
 ### 1. Initial Project Setup
-- [ ] Initialize Next.js 14 project with TypeScript
+- [x] Initialize Next.js 14 project with TypeScript
   ```bash
   npx create-next-app@latest leadfinder-pro --typescript --tailwind --app --eslint
   ```
-- [ ] Configure Tailwind CSS (should be auto-configured)
-- [ ] Set up ESLint and Prettier
-- [ ] Create `.env.local` file for environment variables
-- [ ] Create `.env.example` file with all required env vars (no secrets)
-- [ ] Set up Git repository with proper .gitignore
-- [ ] Create folder structure:
+- [x] Configure Tailwind CSS (should be auto-configured)
+- [x] Set up ESLint and Prettier
+- [x] Create `.env.local` file for environment variables
+- [x] Create `.env.example` file with all required env vars (no secrets)
+- [x] Set up Git repository with proper .gitignore
+- [x] Create folder structure:
   ```
   /app               - Next.js app directory (pages + API routes)
   /components        - Reusable React components
@@ -68,13 +68,13 @@
   NEXT_PUBLIC_SUPABASE_URL=your_project_url
   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
   ```
-- [ ] Install Supabase client:
+- [x] Install Supabase client:
   ```bash
   npm install @supabase/supabase-js @supabase/ssr
   ```
-- [ ] Create `/lib/supabase/client.ts` - client-side Supabase client
-- [ ] Create `/lib/supabase/server.ts` - server-side Supabase client
-- [ ] Create `/lib/supabase/middleware.ts` - auth middleware
+- [x] Create `/lib/supabase/client.ts` - client-side Supabase client
+- [x] Create `/lib/supabase/server.ts` - server-side Supabase client
+- [x] Create `/lib/supabase/middleware.ts` - auth middleware
 
 **AI Coding Note:** Follow Supabase Next.js 14 docs exactly. Don't deviate from their recommended setup.
 
