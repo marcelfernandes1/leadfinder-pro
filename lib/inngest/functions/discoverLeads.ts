@@ -10,7 +10,7 @@
  */
 
 import { inngest } from '../client';
-import { searchBusinesses } from '@/lib/services/googleMaps';
+import { searchBusinesses, GoogleMapsBusiness } from '@/lib/services/googleMaps';
 import { findEmail } from '@/lib/services/emailFinder';
 import { detectCRM } from '@/lib/services/crmDetector';
 import { calculateProbabilityScore } from '@/lib/utils/scoreCalculator';
@@ -36,7 +36,7 @@ export const discoverLeads = inngest.createFunction(
   async ({ event, step }: { event: DiscoverLeadsEvent; step: any }) => {
     const { searchId, userId, location, industry, radius = 10, requestedCount = 50 } = event.data;
 
-    console.log(\`[Inngest] Starting lead discovery for search \${searchId}\`);
+    console.log(`[Inngest] Starting lead discovery for search ${searchId}`);
 
     // Step 1: Update search status
     await step.run('update-search-status', async () => {
@@ -89,7 +89,7 @@ export const discoverLeads = inngest.createFunction(
     const savedLeadIds = await step.run('save-basic-leads', async () => {
       const supabase = await createClient();
       
-      const leadRecords = businesses.map(business => ({
+      const leadRecords = businesses.map((business: GoogleMapsBusiness) => ({
         search_id: searchId,
         business_name: business.name,
         address: business.address,
@@ -124,7 +124,7 @@ export const discoverLeads = inngest.createFunction(
         .select('*')
         .in('id', savedLeadIds);
 
-      if (\!leads || leads.length === 0) return;
+      if (!leads || leads.length === 0) return;
 
       const totalLeads = leads.length;
       let processedCount = 0;
@@ -158,7 +158,7 @@ export const discoverLeads = inngest.createFunction(
 
           await new Promise(resolve => setTimeout(resolve, 500));
         } catch (error) {
-          console.error(\`Failed to enrich lead \${lead.id}:\`, error);
+          console.error(`Failed to enrich lead ${lead.id}:`, error);
         }
       }
     });
@@ -171,7 +171,7 @@ export const discoverLeads = inngest.createFunction(
         .select('*')
         .in('id', savedLeadIds);
 
-      if (\!leads) return;
+      if (!leads) return;
 
       for (const lead of leads) {
         const score = calculateProbabilityScore({

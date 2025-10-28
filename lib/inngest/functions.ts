@@ -200,16 +200,9 @@ export const enrichLeadEmail = inngest.createFunction(
     const supabase = createAdminClient()
 
     try {
-      // Extract domain from website URL
-      const domain = extractDomain(website)
-
-      if (!domain) {
-        console.log(`⚠️  Invalid domain for lead ${leadId}: ${website}`)
-        return { leadId, email: null }
-      }
-
-      // Find email using Hunter.io
-      const email = await findEmail(domain)
+      // Find email using Hunter.io (it handles domain extraction internally)
+      const emailResult = await findEmail(website)
+      const email = emailResult?.email || null
 
       if (email) {
         // Update lead with found email
@@ -294,16 +287,17 @@ export const calculateLeadScore = inngest.createFunction(
 
       // Calculate probability score
       const score = calculateProbabilityScore({
-        hasWebsite: Boolean(lead.website),
-        hasEmail: Boolean(lead.email),
-        hasPhone: Boolean(lead.phone),
-        hasInstagram: Boolean(lead.instagram),
-        hasFacebook: Boolean(lead.facebook),
-        hasWhatsApp: Boolean(lead.whatsapp),
-        hasLinkedIn: Boolean(lead.linkedin),
+        website: lead.website,
+        email: lead.email,
+        phone: lead.phone,
+        instagram: lead.instagram,
+        facebook: lead.facebook,
+        whatsapp: lead.whatsapp,
+        linkedin: lead.linkedin,
+        tiktok: lead.tiktok,
         hasAutomation: lead.has_automation,
-        googleRating: lead.google_rating || undefined,
-        industry: lead.industry || undefined,
+        googleRating: lead.google_rating,
+        industry: lead.industry,
       })
 
       // Update lead with calculated score
