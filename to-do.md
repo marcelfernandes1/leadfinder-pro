@@ -253,15 +253,15 @@
 ---
 
 ### 9. Stripe Setup
-- [ ] Create Stripe account at https://stripe.com
-- [ ] Get test API keys (starts with `sk_test_` and `pk_test_`)
-- [ ] Add to `.env.local`
-- [ ] Create products in test mode:
-  - **Starter:** $97/mo recurring (500 leads/month)
-  - **Pro:** $197/mo recurring (2000 leads/month)
-  - **Agency:** $297/mo recurring (unlimited leads)
-- [ ] Save product IDs and price IDs for later use
-- [ ] Install Stripe SDK:
+- [x] Create Stripe account at https://stripe.com
+- [x] Get test API keys (starts with `sk_test_` and `pk_test_`)
+- [x] Add to `.env.local`
+- [x] Create products in test mode:
+  - **Starter:** $97/mo recurring (500 leads/month) - prod_TJuMAi9hvlNnLB
+  - **Pro:** $197/mo recurring (2000 leads/month) - prod_TJuM8sUoAKfFPv
+  - **Agency:** $297/mo recurring (unlimited leads) - prod_TJuMLo1AV6cqE5
+- [x] Save product IDs and price IDs for later use
+- [x] Install Stripe SDK:
   ```bash
   npm install stripe @stripe/stripe-js
   ```
