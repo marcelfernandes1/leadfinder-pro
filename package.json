@@ -4,7 +4,7 @@
   "description": "A web-based lead generation tool that helps CRM/marketing automation consultants find qualified service-based local businesses with contact information and buying probability scores.",
   "main": "index.js",
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 3001",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
