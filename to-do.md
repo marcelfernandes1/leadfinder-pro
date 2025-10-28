@@ -156,16 +156,16 @@
 ---
 
 ### 4. Supabase Authentication Setup
-- [ ] Enable email authentication in Supabase dashboard (Authentication → Providers → Email)
-- [ ] Configure email templates (optional, use defaults for MVP)
-- [ ] Create `/app/auth/login/page.tsx` - login page
-- [ ] Create `/app/auth/signup/page.tsx` - signup page
-- [ ] Create `/app/auth/callback/route.ts` - auth callback handler
-- [ ] Implement sign up form with email + password
-- [ ] Implement login form with email + password
-- [ ] Add password validation (min 8 chars)
-- [ ] Add email verification flow
-- [ ] Create protected route middleware
+- [x] Enable email authentication in Supabase dashboard (Authentication → Providers → Email)
+- [x] Configure email templates (optional, use defaults for MVP)
+- [x] Create `/app/auth/login/page.tsx` - login page
+- [x] Create `/app/auth/signup/page.tsx` - signup page
+- [x] Create `/app/auth/callback/route.ts` - auth callback handler
+- [x] Implement sign up form with email + password
+- [x] Implement login form with email + password
+- [x] Add password validation (min 8 chars)
+- [x] Add email verification flow
+- [x] Create protected route middleware
 - [ ] Test full auth flow (signup → email verify → login)
 
 **AI Coding Note:** Use Supabase Auth UI library if you want pre-built components, or build custom forms. Supabase handles all password hashing, session management automatically.
