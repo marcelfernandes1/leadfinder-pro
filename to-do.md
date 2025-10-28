@@ -61,9 +61,9 @@
 ---
 
 ### 2. Supabase Setup
-- [ ] Create Supabase account at https://supabase.com
-- [ ] Create new project (choose region closest to users)
-- [ ] Copy project URL and anon key to `.env.local`:
+- [x] Create Supabase account at https://supabase.com
+- [x] Create new project (choose region closest to users)
+- [x] Copy project URL and anon key to `.env.local`:
   ```
   NEXT_PUBLIC_SUPABASE_URL=your_project_url
   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
@@ -81,8 +81,8 @@
 ---
 
 ### 3. Database Schema Design
-- [ ] Open Supabase SQL Editor
-- [ ] Create `profiles` table:
+- [x] Open Supabase SQL Editor
+- [x] Create `profiles` table:
   ```sql
   create table profiles (
     id uuid references auth.users on delete cascade primary key,
@@ -93,7 +93,7 @@
     created_at timestamp with time zone default now()
   );
   ```
-- [ ] Create `searches` table:
+- [x] Create `searches` table:
   ```sql
   create table searches (
     id uuid default gen_random_uuid() primary key,
@@ -108,7 +108,7 @@
     created_at timestamp with time zone default now()
   );
   ```
-- [ ] Create `leads` table:
+- [x] Create `leads` table:
   ```sql
   create table leads (
     id uuid default gen_random_uuid() primary key,
@@ -130,7 +130,7 @@
     created_at timestamp with time zone default now()
   );
   ```
-- [ ] Create `lead_status` table:
+- [x] Create `lead_status` table:
   ```sql
   create table lead_status (
     id uuid default gen_random_uuid() primary key,
@@ -141,15 +141,15 @@
     unique(lead_id, user_id)
   );
   ```
-- [ ] Create indexes for performance:
+- [x] Create indexes for performance:
   ```sql
   create index idx_leads_search_id on leads(search_id);
   create index idx_leads_probability_score on leads(probability_score desc);
   create index idx_lead_status_user_id on lead_status(user_id);
   create index idx_searches_user_id on searches(user_id);
   ```
-- [ ] Enable Row Level Security (RLS) on all tables
-- [ ] Create RLS policies (users can only see their own data)
+- [x] Enable Row Level Security (RLS) on all tables
+- [x] Create RLS policies (users can only see their own data)
 
 **AI Coding Note:** Run each SQL statement one at a time. Verify in Supabase table editor before moving to next. RLS is critical for security.
 
@@ -166,14 +166,14 @@
 - [x] Add password validation (min 8 chars)
 - [x] Add email verification flow
 - [x] Create protected route middleware
-- [ ] Test full auth flow (signup → email verify → login)
+- [x] Test full auth flow (signup → email verify → login)
 
 **AI Coding Note:** Use Supabase Auth UI library if you want pre-built components, or build custom forms. Supabase handles all password hashing, session management automatically.
 
 ---
 
 ### 5. Environment Variables Setup
-- [ ] Add all required env vars to `.env.local`:
+- [x] Add all required env vars to `.env.local`:
   ```
   # Supabase
   NEXT_PUBLIC_SUPABASE_URL=
@@ -198,8 +198,8 @@
   INNGEST_EVENT_KEY=
   INNGEST_SIGNING_KEY=
   ```
-- [ ] Create `.env.example` with same keys but empty values
-- [ ] Add `.env.local` to `.gitignore` (should already be there)
+- [x] Create `.env.example` with same keys but empty values
+- [x] Add `.env.local` to `.gitignore` (should already be there)
 
 **AI Coding Note:** Don't commit real API keys. Ever.
 
@@ -208,14 +208,14 @@
 ## External API Setup (Week 1-2)
 
 ### 6. Google Maps API Setup
-- [ ] Go to Google Cloud Console (console.cloud.google.com)
-- [ ] Create new project
-- [ ] Enable Google Maps Places API (New)
-- [ ] Create API key
-- [ ] Restrict API key to Places API only
-- [ ] Add billing account (required even for free tier)
-- [ ] Add API key to `.env.local`
-- [ ] Test with sample query in Postman or curl
+- [x] Go to Google Cloud Console (console.cloud.google.com)
+- [x] Create new project
+- [x] Enable Google Maps Places API (New)
+- [x] Create API key
+- [x] Restrict API key to Places API only
+- [x] Add billing account (required even for free tier)
+- [x] Add API key to `.env.local`
+- [x] Test with sample query in Postman or curl
 
 **Cost Estimate:** $17 per 1000 place details requests. Start with $50 budget.
 
@@ -224,11 +224,11 @@
 ---
 
 ### 7. Hunter.io API Setup
-- [ ] Sign up at https://hunter.io
-- [ ] Choose plan (start with $49/mo for 500 searches)
-- [ ] Get API key from dashboard
-- [ ] Add to `.env.local`
-- [ ] Test email finding with a known domain
+- [x] Sign up at https://hunter.io
+- [x] Choose plan (start with $49/mo for 500 searches)
+- [x] Get API key from dashboard
+- [x] Add to `.env.local`
+- [x] Test email finding with a known domain
 - [ ] Document success rate for later optimization
 
 **AI Coding Note:** Hunter.io has 50 free searches. Use those for testing. Don't upgrade until production.
@@ -236,13 +236,13 @@
 ---
 
 ### 8. Apify Setup
-- [ ] Sign up at https://apify.com
-- [ ] Browse Apify Store for these actors:
+- [x] Sign up at https://apify.com
+- [x] Browse Apify Store for these actors:
   - "Google Maps Scraper" (for additional business data)
   - "Instagram Profile Scraper" (for finding Instagram handles)
   - "Facebook Pages Scraper" (for finding Facebook pages)
-- [ ] Get API key from dashboard
-- [ ] Add to `.env.local`
+- [x] Get API key from dashboard
+- [x] Add to `.env.local`
 - [ ] Test each actor with small dataset (1-2 businesses)
 - [ ] Calculate cost per lead (~$0.01-0.05 per profile)
 
@@ -271,15 +271,15 @@
 ---
 
 ### 10. Inngest Setup
-- [ ] Sign up at https://inngest.com
-- [ ] Create new app
-- [ ] Get event key and signing key
-- [ ] Add to `.env.local`
-- [ ] Install Inngest SDK:
+- [x] Sign up at https://inngest.com
+- [x] Create new app
+- [x] Get event key and signing key
+- [x] Add to `.env.local`
+- [x] Install Inngest SDK:
   ```bash
   npm install inngest
   ```
-- [ ] Create `/app/api/inngest/route.ts` for Inngest webhook endpoint
+- [x] Create `/app/api/inngest/route.ts` for Inngest webhook endpoint
 - [ ] Test connection with simple "hello world" function
 
 **AI Coding Note:** Inngest has generous free tier (5000 function runs/month). Perfect for MVP. Use for background lead processing.
@@ -290,7 +290,7 @@
 
 ### 11. Google Maps Service Integration
 - [ ] Create `/lib/services/googleMaps.ts`
-- [ ] Install Google Maps client:
+- [x] Install Google Maps client:
   ```bash
   npm install @googlemaps/google-maps-services-js
   ```
@@ -352,7 +352,7 @@
 
 ### 14. CRM/Automation Detection Service
 - [ ] Create `/lib/services/crmDetector.ts`
-- [ ] Install dependencies:
+- [x] Install dependencies:
   ```bash
   npm install axios cheerio
   ```
@@ -488,7 +488,7 @@ Test each step before moving to next. Don't try to build it all at once.
 
 ### 18. Search Form Page
 - [ ] Create `/app/search/page.tsx`
-- [ ] Install form library:
+- [x] Install form library:
   ```bash
   npm install react-hook-form zod @hookform/resolvers
   ```
@@ -514,7 +514,7 @@ Test each step before moving to next. Don't try to build it all at once.
 
 ### 19. Loading Animation Screen
 - [ ] Create `/app/search/[searchId]/loading/page.tsx`
-- [ ] Install animation libraries:
+- [x] Install animation libraries:
   ```bash
   npm install framer-motion
   ```
@@ -545,7 +545,7 @@ Test each step before moving to next. Don't try to build it all at once.
 
 ### 20. Celebration Screen
 - [ ] Create `/app/search/[searchId]/results/page.tsx` (shows celebration first)
-- [ ] Install confetti library:
+- [x] Install confetti library:
   ```bash
   npm install react-confetti
   ```
@@ -844,7 +844,7 @@ Keep it under 200 lines total.
 
 ### 33. CSV Export API Endpoint
 - [ ] Create `/app/api/leads/export/route.ts`
-- [ ] Install CSV library:
+- [x] Install CSV library:
   ```bash
   npm install json2csv
   ```
@@ -1103,13 +1103,13 @@ Keep it under 200 lines total.
 ---
 
 ### 45. Vercel Deployment
-- [ ] Connect GitHub repo to Vercel
-- [ ] Configure build settings:
+- [x] Connect GitHub repo to Vercel
+- [x] Configure build settings:
   - Framework: Next.js
   - Build command: `npm run build`
   - Output directory: `.next`
-- [ ] Add environment variables
-- [ ] Deploy to production
+- [x] Add environment variables
+- [x] Deploy to production
 - [ ] Test deployed app thoroughly
 - [ ] Add custom domain (if available)
 - [ ] Enable Vercel Analytics
