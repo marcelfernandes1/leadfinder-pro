@@ -160,7 +160,7 @@ export async function detectCRM(websiteUrl: string): Promise<CRMDetectionResult>
     const $ = cheerio.load(html);
 
     // Get all script tags and HTML content for analysis
-    const scripts = .map((i, el) => .html() || '').get().join(' ');
+    const scripts = $('script').map((i, el) => $(el).html() || '').get().join(' ');
     const fullHtml = html.toLowerCase();
 
     // Check for each CRM tool

@@ -15,7 +15,7 @@
  */
 
 import { inngest } from './client'
-import { searchBusinesses, extractDomain } from '@/lib/services/googleMaps'
+import { searchBusinesses } from '@/lib/services/googleMaps'
 import { findEmail } from '@/lib/services/emailFinder'
 import { detectCRMCached } from '@/lib/services/crmDetector'
 import { calculateProbabilityScore } from '@/lib/utils/scoreCalculator'

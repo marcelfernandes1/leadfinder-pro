@@ -45,10 +45,10 @@ function extractDomain(url: string): string | null {
 
   try {
     // Remove protocol if present
-    let domain = url.replace(/^https?:///, '');
+    let domain = url.replace(/^https?:\/\//, '');
 
     // Remove www. if present
-    domain = domain.replace(/^www./, '');
+    domain = domain.replace(/^www\./, '');
 
     // Remove path and query string
     domain = domain.split('/')[0].split('?')[0];
