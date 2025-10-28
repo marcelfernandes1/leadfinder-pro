@@ -551,7 +551,7 @@ function LeadCard({ lead }: { lead: Lead }) {
 
   return (
     <motion.div
-      whileHover={{ y: -4, shadow: '0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)' }}
+      whileHover={{ y: -4 }}
       className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-6 border border-slate-200 relative overflow-hidden group"
     >
       {/* Gradient accent bar */}
