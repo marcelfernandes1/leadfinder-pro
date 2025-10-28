@@ -53,7 +53,12 @@ export const discoverLeads = inngest.createFunction(
     // Step 2: Search Google Maps for businesses
     const businesses = await step.run('search-google-maps', async () => {
       try {
-        const results = await searchBusinesses(location, industry, radius)
+        const results = await searchBusinesses({
+          location,
+          businessType: industry,
+          radius,
+          maxResults: requestedCount
+        })
         console.log(`✅ Found ${results.length} businesses from Google Maps`)
         return results
       } catch (error) {
