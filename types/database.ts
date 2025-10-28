@@ -1,179 +1,98 @@
 /**
  * Database Type Definitions
- *
- * TypeScript types for all database tables and their relationships.
- * These types match the Supabase schema and provide type safety throughout the app.
- *
- * Note: These types will be updated once the actual database schema is created in Supabase.
- * For now, they serve as a blueprint for what will be created.
+ * 
+ * These types match the Supabase database schema.
+ * They ensure type safety when working with database records.
  */
 
-export type Json =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: Json | undefined }
-  | Json[]
+/**
+ * Subscription tier types
+ */
+export type SubscriptionTier = 'free' | 'starter' | 'pro' | 'agency';
 
-export interface Database {
-  public: {
-    Tables: {
-      profiles: {
-        Row: {
-          id: string
-          email: string
-          subscription_tier: 'free' | 'starter' | 'pro' | 'agency'
-          leads_used_this_month: number
-          billing_cycle_start: string | null
-          created_at: string
-        }
-        Insert: {
-          id: string
-          email: string
-          subscription_tier?: 'free' | 'starter' | 'pro' | 'agency'
-          leads_used_this_month?: number
-          billing_cycle_start?: string | null
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          email?: string
-          subscription_tier?: 'free' | 'starter' | 'pro' | 'agency'
-          leads_used_this_month?: number
-          billing_cycle_start?: string | null
-          created_at?: string
-        }
-      }
-      searches: {
-        Row: {
-          id: string
-          user_id: string
-          location: string
-          industry: string | null
-          radius: number | null
-          requested_count: number | null
-          status: 'processing' | 'completed' | 'failed'
-          progress: number
-          results_count: number
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          location: string
-          industry?: string | null
-          radius?: number | null
-          requested_count?: number | null
-          status?: 'processing' | 'completed' | 'failed'
-          progress?: number
-          results_count?: number
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          location?: string
-          industry?: string | null
-          radius?: number | null
-          requested_count?: number | null
-          status?: 'processing' | 'completed' | 'failed'
-          progress?: number
-          results_count?: number
-          created_at?: string
-        }
-      }
-      leads: {
-        Row: {
-          id: string
-          search_id: string
-          business_name: string
-          address: string | null
-          website: string | null
-          phone: string | null
-          email: string | null
-          instagram: string | null
-          facebook: string | null
-          whatsapp: string | null
-          linkedin: string | null
-          tiktok: string | null
-          has_automation: boolean
-          probability_score: number | null
-          industry: string | null
-          google_rating: number | null
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          search_id: string
-          business_name: string
-          address?: string | null
-          website?: string | null
-          phone?: string | null
-          email?: string | null
-          instagram?: string | null
-          facebook?: string | null
-          whatsapp?: string | null
-          linkedin?: string | null
-          tiktok?: string | null
-          has_automation?: boolean
-          probability_score?: number | null
-          industry?: string | null
-          google_rating?: number | null
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          search_id?: string
-          business_name?: string
-          address?: string | null
-          website?: string | null
-          phone?: string | null
-          email?: string | null
-          instagram?: string | null
-          facebook?: string | null
-          whatsapp?: string | null
-          linkedin?: string | null
-          tiktok?: string | null
-          has_automation?: boolean
-          probability_score?: number | null
-          industry?: string | null
-          google_rating?: number | null
-          created_at?: string
-        }
-      }
-      lead_status: {
-        Row: {
-          id: string
-          lead_id: string
-          user_id: string
-          status: 'not_contacted' | 'messaged' | 'responded' | 'not_interested' | 'closed'
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          lead_id: string
-          user_id: string
-          status?: 'not_contacted' | 'messaged' | 'responded' | 'not_interested' | 'closed'
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          lead_id?: string
-          user_id?: string
-          status?: 'not_contacted' | 'messaged' | 'responded' | 'not_interested' | 'closed'
-          updated_at?: string
-        }
-      }
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      [_ in never]: never
-    }
-    Enums: {
-      [_ in never]: never
-    }
-  }
+/**
+ * Search status types
+ */
+export type SearchStatus = 'processing' | 'completed' | 'failed';
+
+/**
+ * Lead status types (for user tracking)
+ */
+export type LeadStatus = 'not_contacted' | 'messaged' | 'responded' | 'not_interested' | 'closed';
+
+/**
+ * Profile table - User accounts
+ */
+export interface Profile {
+  id: string;  // UUID, references auth.users
+  email: string;
+  subscription_tier: SubscriptionTier;
+  leads_used_this_month: number;
+  billing_cycle_start: string | null;  // ISO date string
+  created_at: string;  // ISO date string
+}
+
+/**
+ * Searches table - Lead search operations
+ */
+export interface Search {
+  id: string;  // UUID
+  user_id: string;  // UUID
+  location: string;
+  industry: string | null;
+  radius: number | null;
+  requested_count: number | null;
+  status: SearchStatus;
+  progress: number;  // 0-100
+  results_count: number;
+  created_at: string;  // ISO date string
+}
+
+/**
+ * Leads table - Business leads
+ */
+export interface Lead {
+  id: string;  // UUID
+  search_id: string;  // UUID
+  business_name: string;
+  address: string | null;
+  website: string | null;
+  phone: string | null;
+  email: string | null;
+  instagram: string | null;
+  facebook: string | null;
+  whatsapp: string | null;
+  linkedin: string | null;
+  tiktok: string | null;
+  has_automation: boolean;
+  probability_score: number | null;  // 0-100
+  industry: string | null;
+  google_rating: number | null;  // 0.0-5.0
+  created_at: string;  // ISO date string
+}
+
+/**
+ * Lead Status table - User-specific lead tracking
+ */
+export interface LeadStatusRecord {
+  id: string;  // UUID
+  lead_id: string;  // UUID
+  user_id: string;  // UUID
+  status: LeadStatus;
+  updated_at: string;  // ISO date string
+}
+
+/**
+ * Extended Lead type with status for UI display
+ */
+export interface LeadWithStatus extends Lead {
+  status?: LeadStatus;
+}
+
+/**
+ * Search with lead count for UI display
+ */
+export interface SearchWithLeads extends Search {
+  leads?: Lead[];
+  lead_count?: number;
 }

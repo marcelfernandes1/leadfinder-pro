@@ -1,20 +1,23 @@
 /**
  * Inngest Client Configuration
- *
- * Inngest handles all background job processing for lead discovery and enrichment.
- * This keeps the main API routes fast by offloading slow operations (API calls,
- * web scraping) to background workers.
- *
- * Documentation: https://www.inngest.com/docs
+ * 
+ * This file sets up the Inngest client for background job processing.
+ * Inngest handles all async operations to avoid Next.js API route timeouts.
  */
 
-import { Inngest } from 'inngest'
+import { Inngest } from 'inngest';
 
 /**
- * Create Inngest client instance
- * This is used to send events and define background functions
+ * Create Inngest client
+ * 
+ * The client is used to:
+ * 1. Send events to trigger functions
+ * 2. Define and register background functions
+ * 
+ * Event naming convention: "resource/action"
+ * Examples: "search/discover", "lead/enrich.email", "lead/calculate.score"
  */
-export const inngest = new Inngest({
+export const inngest = new Inngest({ 
   id: 'leadfinder-pro',
   name: 'LeadFinder Pro',
-})
+});
