@@ -17,7 +17,7 @@
 import { inngest } from './client'
 import { searchBusinesses } from '@/lib/services/googleMaps'
 import { findEmail } from '@/lib/services/emailFinder'
-import { detectCRMCached } from '@/lib/services/crmDetector'
+import { detectCRM } from '@/lib/services/crmDetector'
 import { calculateProbabilityScore } from '@/lib/utils/scoreCalculator'
 import { createAdminClient } from '@/lib/supabase/server'
 
@@ -235,8 +235,8 @@ export const enrichLeadCRM = inngest.createFunction(
     const supabase = createAdminClient()
 
     try {
-      // Detect CRM tools (with caching)
-      const detection = await detectCRMCached(website)
+      // Detect CRM tools
+      const detection = await detectCRM(website)
 
       // Update lead with detection results
       await supabase
