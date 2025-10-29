@@ -391,13 +391,11 @@ function DashboardContent() {
   const mediumPriorityCount = leads.filter((l) => (l.probability_score || 0) >= 60 && (l.probability_score || 0) < 80).length;
 
   return (
-    <>
+    <div className="flex flex-col h-screen bg-slate-50">
       <Navbar />
-      <div className="h-screen bg-slate-50 flex flex-col overflow-hidden" style={{ marginTop: '64px' }}>
-        {/* Sidebar + Main Content Wrapper */}
-        <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
-        <div className="hidden md:flex w-64 bg-white border-r border-slate-200 flex-col flex-shrink-0">
+        <div className="hidden md:flex w-64 bg-white border-r border-slate-200 flex-col flex-shrink-0 overflow-y-auto">
           <div className="p-6 border-b border-slate-200">
             <h2 className="font-semibold text-slate-900 mb-4">Menu</h2>
             <nav className="space-y-2">
@@ -662,10 +660,9 @@ function DashboardContent() {
             )}
           </div>
         </div>
+        </div>
       </div>
-      </div>
-      </div>
-    </>
+    </div>
   );
 }
 
