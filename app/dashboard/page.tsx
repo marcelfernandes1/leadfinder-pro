@@ -381,38 +381,40 @@ function DashboardContent() {
   const mediumPriorityCount = leads.filter((l) => (l.probability_score || 0) >= 60 && (l.probability_score || 0) < 80).length;
 
   return (
-    <div className="min-h-screen bg-slate-50 flex">
+    <div className="h-screen bg-slate-50 flex flex-col">
       <Navbar />
 
-      {/* Sidebar */}
-      <div className="hidden md:flex w-64 bg-white border-r border-slate-200 flex-col fixed left-0 top-16 h-[calc(100vh-4rem)]">
-        <div className="p-6 border-b border-slate-200">
-          <h2 className="font-semibold text-slate-900 mb-4">Menu</h2>
-          <nav className="space-y-2">
-            <button className="w-full text-left px-4 py-2 rounded-lg bg-blue-50 text-blue-600 font-medium">
-              <Search className="w-4 h-4 inline mr-2" />
-              Searches
+      {/* Sidebar + Main Content Wrapper */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Sidebar */}
+        <div className="hidden md:flex w-64 bg-white border-r border-slate-200 flex-col flex-shrink-0">
+          <div className="p-6 border-b border-slate-200">
+            <h2 className="font-semibold text-slate-900 mb-4">Menu</h2>
+            <nav className="space-y-2">
+              <button className="w-full text-left px-4 py-2 rounded-lg bg-blue-50 text-blue-600 font-medium">
+                <Search className="w-4 h-4 inline mr-2" />
+                Searches
+              </button>
+              <button className="w-full text-left px-4 py-2 rounded-lg text-slate-700 hover:bg-slate-100">
+                <Download className="w-4 h-4 inline mr-2" />
+                Saved Leads
+              </button>
+            </nav>
+          </div>
+
+          <div className="p-6 mt-auto border-t border-slate-200">
+            <button
+              onClick={() => router.push('/account')}
+              className="w-full text-left px-4 py-2 rounded-lg text-slate-700 hover:bg-slate-100 flex items-center"
+            >
+              <Settings className="w-4 h-4 mr-2" />
+              Settings
             </button>
-            <button className="w-full text-left px-4 py-2 rounded-lg text-slate-700 hover:bg-slate-100">
-              <Download className="w-4 h-4 inline mr-2" />
-              Saved Leads
-            </button>
-          </nav>
+          </div>
         </div>
 
-        <div className="p-6 mt-auto border-t border-slate-200">
-          <button
-            onClick={() => router.push('/account')}
-            className="w-full text-left px-4 py-2 rounded-lg text-slate-700 hover:bg-slate-100 flex items-center"
-          >
-            <Settings className="w-4 h-4 mr-2" />
-            Settings
-          </button>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="flex-1 md:ml-64 w-full pt-16 flex flex-col">
+        {/* Main Content */}
+        <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header with Stats */}
         <div className="bg-white border-b border-slate-200">
           <div className="px-8 py-8">
@@ -602,49 +604,53 @@ function DashboardContent() {
         )}
       </AnimatePresence>
 
-      {/* Leads Grid */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {leads.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-          >
-            <Card className="bg-white/80 backdrop-blur-xl p-16 text-center">
-              <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Search className="w-10 h-10 text-slate-400" />
-              </div>
-              <CardTitle className="text-2xl mb-2">No leads found</CardTitle>
-              <CardDescription className="mb-6">Try adjusting your filters or start a new search</CardDescription>
-              <Button
-                variant="link"
-                onClick={() => {
-                  setMinScore(0);
-                  setMaxScore(100);
-                  setHasEmail(false);
-                  setHasPhone(false);
-                }}
-                className="text-indigo-600 hover:text-indigo-700"
-              >
-                Reset Filters
-              </Button>
-            </Card>
-          </motion.div>
-        ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-            {leads.map((lead, index) => (
+        {/* Scrollable Content Area */}
+        <div className="flex-1 overflow-y-auto">
+          {/* Leads Grid */}
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            {leads.length === 0 ? (
               <motion.div
-                key={lead.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.03, duration: 0.4 }}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
               >
-                <LeadCard lead={lead} />
+                <Card className="bg-white/80 backdrop-blur-xl p-16 text-center">
+                  <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Search className="w-10 h-10 text-slate-400" />
+                  </div>
+                  <CardTitle className="text-2xl mb-2">No leads found</CardTitle>
+                  <CardDescription className="mb-6">Try adjusting your filters or start a new search</CardDescription>
+                  <Button
+                    variant="link"
+                    onClick={() => {
+                      setMinScore(0);
+                      setMaxScore(100);
+                      setHasEmail(false);
+                      setHasPhone(false);
+                    }}
+                    className="text-indigo-600 hover:text-indigo-700"
+                  >
+                    Reset Filters
+                  </Button>
+                </Card>
               </motion.div>
-            ))}
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                {leads.map((lead, index) => (
+                  <motion.div
+                    key={lead.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.03, duration: 0.4 }}
+                  >
+                    <LeadCard lead={lead} />
+                  </motion.div>
+                ))}
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
-    </div>
+      </div>
     </div>
   );
 }
