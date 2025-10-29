@@ -22,15 +22,21 @@ export default function LandingPage() {
       <nav className="border-b border-slate-200/50 bg-white/80 backdrop-blur-xl sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-2">
+            <Link href="/" className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
                 <Target className="w-5 h-5 text-white" />
               </div>
               <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                 LeadFinder Pro
               </span>
-            </div>
-            <div className="flex items-center space-x-4">
+            </Link>
+            <div className="flex items-center space-x-6">
+              <Link href="/how-it-works" className="text-slate-700 hover:text-indigo-600 font-medium transition-colors">
+                How It Works
+              </Link>
+              <Link href="/pricing" className="text-slate-700 hover:text-indigo-600 font-medium transition-colors">
+                Pricing
+              </Link>
               <Button variant="ghost" asChild>
                 <Link href="/auth/login">Sign In</Link>
               </Button>
