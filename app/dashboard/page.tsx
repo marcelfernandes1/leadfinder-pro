@@ -107,16 +107,14 @@ function Navbar() {
 
           {/* Navigation Links */}
           <div className="flex items-center space-x-6">
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-              <Button
-                variant="ghost"
-                onClick={() => router.push('/search')}
-                className="font-medium hover:shadow-md active:shadow-inner active:opacity-90 transition-all duration-200"
-              >
-                <Search className="w-4 h-4 mr-2" />
-                New Search
-              </Button>
-            </motion.div>
+            <Button
+              variant="ghost"
+              onClick={() => router.push('/search')}
+              className="font-medium hover:shadow-md hover:bg-slate-100 active:shadow-inner active:opacity-90 transition-all duration-200"
+            >
+              <Search className="w-4 h-4 mr-2" />
+              New Search
+            </Button>
 
             {/* User Menu */}
             <DropdownMenu>
@@ -393,11 +391,11 @@ function DashboardContent() {
   const mediumPriorityCount = leads.filter((l) => (l.probability_score || 0) >= 60 && (l.probability_score || 0) < 80).length;
 
   return (
-    <div className="h-screen bg-slate-50 flex flex-col overflow-hidden pt-16">
+    <>
       <Navbar />
-
-      {/* Sidebar + Main Content Wrapper */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="h-screen bg-slate-50 flex flex-col overflow-hidden" style={{ marginTop: '64px' }}>
+        {/* Sidebar + Main Content Wrapper */}
+        <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
         <div className="hidden md:flex w-64 bg-white border-r border-slate-200 flex-col flex-shrink-0">
           <div className="p-6 border-b border-slate-200">
@@ -666,7 +664,8 @@ function DashboardContent() {
         </div>
       </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }
 
