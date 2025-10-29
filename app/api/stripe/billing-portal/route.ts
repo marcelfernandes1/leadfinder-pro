@@ -31,13 +31,32 @@ export async function POST(request: NextRequest) {
       .eq('id', user.id)
       .single();
 
-    if (profileError || !profile?.stripe_customer_id) {
-      return NextResponse.json({ error: 'Customer not found' }, { status: 404 });
+    let stripeCustomerId: string;
+
+    if (profile?.stripe_customer_id) {
+      // Use existing customer ID
+      stripeCustomerId = profile.stripe_customer_id;
+    } else {
+      // Create a new Stripe customer if one doesn't exist
+      const customer = await stripe.customers.create({
+        email: user.email,
+        metadata: {
+          supabase_uid: user.id,
+        },
+      });
+
+      stripeCustomerId = customer.id;
+
+      // Save customer ID to profile
+      await supabase
+        .from('profiles')
+        .update({ stripe_customer_id: stripeCustomerId })
+        .eq('id', user.id);
     }
 
     // Create billing portal session
     const session = await stripe.billingPortal.sessions.create({
-      customer: profile.stripe_customer_id,
+      customer: stripeCustomerId,
       return_url: `${request.headers.get('origin') || 'http://localhost:3001'}/account`,
     });
 

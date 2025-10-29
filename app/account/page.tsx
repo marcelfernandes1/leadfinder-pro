@@ -331,7 +331,7 @@ export default function AccountPage() {
                         <Button
                           onClick={handleEmailUpdate}
                           disabled={emailLoading}
-                          className="bg-gradient-to-r from-blue-600 to-indigo-600 active:shadow-inner active:opacity-90"
+                          className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:shadow-lg hover:opacity-95 active:shadow-inner active:opacity-90 transition-all duration-200"
                         >
                           {emailLoading ? 'Saving...' : 'Update'}
                         </Button>
@@ -377,7 +377,7 @@ export default function AccountPage() {
                   <motion.div whileTap={{ scale: 0.98 }} className="w-full">
                     <Button
                       variant="outline"
-                      className="w-full active:shadow-inner active:opacity-90"
+                      className="w-full hover:bg-slate-50 hover:shadow-md active:shadow-inner active:opacity-90 transition-all duration-200"
                       onClick={handlePasswordReset}
                     >
                       Send Reset Email
@@ -409,7 +409,7 @@ export default function AccountPage() {
                       <Button
                         onClick={handleManageBilling}
                         disabled={billingLoading}
-                        className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 active:shadow-inner active:opacity-90"
+                        className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:shadow-lg hover:opacity-95 active:shadow-inner active:opacity-90 transition-all duration-200"
                       >
                         {billingLoading ? 'Loading...' : 'Manage Billing'}
                       </Button>
@@ -487,7 +487,7 @@ export default function AccountPage() {
                   <motion.div whileTap={{ scale: 0.98 }} className="w-full">
                     <Button
                       variant="destructive"
-                      className="w-full active:shadow-inner active:opacity-90"
+                      className="w-full hover:shadow-lg hover:opacity-95 active:shadow-inner active:opacity-90 transition-all duration-200"
                       onClick={handleDeleteAccount}
                       disabled={deletingAccount}
                     >
