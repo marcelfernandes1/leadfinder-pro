@@ -2,9 +2,15 @@
  * Pricing Page - LeadFinder Pro
  *
  * Comprehensive pricing page with plan comparison, features, and FAQ
+ * Integrated with Stripe for checkout
  */
 
+'use client';
+
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { createClient } from '@/lib/supabase/client';
 import {
   ArrowRight, Target, CheckCircle, Shield, Users, Zap, TrendingUp,
   Mail, Phone, Globe, Download, Settings, Crown, Sparkles, Clock
@@ -13,7 +19,57 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
-export default function PricingPage() {
+type PlanType = 'starter' | 'pro' | 'agency';
+
+/**
+ * Pricing Content Component
+ * Handles checkout logic and plan selection
+ */
+function PricingContent() {
+  const router = useRouter();
+  const supabase = createClient();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loadingPlan, setLoadingPlan] = useState<PlanType | null>(null);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data } = await supabase.auth.getUser();
+      setIsAuthenticated(!!data.user);
+    };
+    checkAuth();
+  }, []);
+
+  /**
+   * Handle plan selection - either route to signup or start checkout
+   */
+  const handleSelectPlan = async (plan: PlanType) => {
+    if (!isAuthenticated) {
+      router.push('/auth/signup');
+      return;
+    }
+
+    setLoadingPlan(plan);
+    try {
+      const response = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create checkout session');
+      }
+
+      const { url } = await response.json();
+      window.location.href = url;
+    } catch (error) {
+      console.error('Checkout error:', error);
+      alert('Failed to start checkout. Please try again.');
+    } finally {
+      setLoadingPlan(null);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       {/* Navigation */}
@@ -118,8 +174,13 @@ export default function PricingPage() {
                   <span>Priority email support</span>
                 </li>
               </ul>
-              <Button className="w-full bg-gradient-to-r from-slate-600 to-slate-700 text-lg" size="lg" asChild>
-                <Link href="/auth/signup">Start Free Trial</Link>
+              <Button
+                className="w-full bg-gradient-to-r from-slate-600 to-slate-700 text-lg"
+                size="lg"
+                onClick={() => handleSelectPlan('starter')}
+                disabled={loadingPlan === 'starter'}
+              >
+                {loadingPlan === 'starter' ? 'Loading...' : 'Start Free Trial'}
               </Button>
               <p className="text-center text-sm text-slate-500 mt-4">No credit card required</p>
             </CardContent>
@@ -184,8 +245,13 @@ export default function PricingPage() {
                   <span>Priority support with faster response times</span>
                 </li>
               </ul>
-              <Button className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-lg shadow-lg" size="lg" asChild>
-                <Link href="/auth/signup">Start Free Trial</Link>
+              <Button
+                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-lg shadow-lg"
+                size="lg"
+                onClick={() => handleSelectPlan('pro')}
+                disabled={loadingPlan === 'pro'}
+              >
+                {loadingPlan === 'pro' ? 'Loading...' : 'Start Free Trial'}
               </Button>
               <p className="text-center text-sm text-slate-500 mt-4">No credit card required</p>
             </CardContent>
@@ -249,8 +315,13 @@ export default function PricingPage() {
                   </div>
                 </li>
               </ul>
-              <Button className="w-full bg-gradient-to-r from-orange-500 to-red-500 text-lg" size="lg" asChild>
-                <Link href="/auth/signup">Start Free Trial</Link>
+              <Button
+                className="w-full bg-gradient-to-r from-orange-500 to-red-500 text-lg"
+                size="lg"
+                onClick={() => handleSelectPlan('agency')}
+                disabled={loadingPlan === 'agency'}
+              >
+                {loadingPlan === 'agency' ? 'Loading...' : 'Start Free Trial'}
               </Button>
               <p className="text-center text-sm text-slate-500 mt-4">No credit card required</p>
             </CardContent>
@@ -461,4 +532,11 @@ export default function PricingPage() {
       </footer>
     </div>
   );
+}
+
+/**
+ * Default export wrapper
+ */
+export default function PricingPage() {
+  return <PricingContent />;
 }

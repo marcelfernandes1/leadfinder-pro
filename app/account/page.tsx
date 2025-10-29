@@ -21,6 +21,9 @@ import {
   Bell,
   Lock,
   ArrowLeft,
+  CheckCircle,
+  AlertCircle,
+  X,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -33,6 +36,42 @@ import {
 import { createClient } from '@/lib/supabase/client';
 
 export const dynamic = 'force-dynamic';
+
+/**
+ * Toast Notification Component
+ * Beautiful animated notification that auto-dismisses
+ */
+function Toast({ message, type, onDismiss }: { message: string; type: 'success' | 'error'; onDismiss: () => void }) {
+  useEffect(() => {
+    const timer = setTimeout(onDismiss, 4000);
+    return () => clearTimeout(timer);
+  }, [onDismiss]);
+
+  const bgColor = type === 'success' ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200';
+  const textColor = type === 'success' ? 'text-green-700' : 'text-red-700';
+  const IconComponent = type === 'success' ? CheckCircle : AlertCircle;
+  const iconColor = type === 'success' ? 'text-green-600' : 'text-red-600';
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -20, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: -20, scale: 0.95 }}
+      className={`fixed top-6 right-6 ${bgColor} border rounded-lg p-4 shadow-lg z-50 max-w-sm flex items-start gap-3`}
+    >
+      <IconComponent className={`w-5 h-5 ${iconColor} flex-shrink-0 mt-0.5`} />
+      <div className="flex-1">
+        <p className={`text-sm font-medium ${textColor}`}>{message}</p>
+      </div>
+      <button
+        onClick={onDismiss}
+        className={`${textColor} hover:opacity-70 transition-opacity flex-shrink-0`}
+      >
+        <X className="w-4 h-4" />
+      </button>
+    </motion.div>
+  );
+}
 
 /**
  * Navbar Component
@@ -102,6 +141,8 @@ export default function AccountPage() {
   const [emailMessage, setEmailMessage] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [deletingAccount, setDeletingAccount] = useState(false);
+  const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [billingLoading, setBillingLoading] = useState(false);
 
   useEffect(() => {
     const getUser = async () => {
@@ -149,12 +190,41 @@ export default function AccountPage() {
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(user?.email);
       if (error) {
-        alert(`Error: ${error.message}`);
+        setNotification({ message: `Error: ${error.message}`, type: 'error' });
       } else {
-        alert('Password reset email sent! Check your inbox.');
+        setNotification({ message: 'Password reset email sent! Check your inbox.', type: 'success' });
       }
     } catch (err) {
-      alert('An error occurred sending reset email');
+      setNotification({ message: 'An error occurred sending reset email', type: 'error' });
+    }
+  };
+
+  /**
+   * Handle billing management
+   * Opens Stripe billing portal or checkout
+   */
+  const handleManageBilling = async () => {
+    setBillingLoading(true);
+    try {
+      const response = await fetch('/api/stripe/billing-portal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user?.id }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create billing portal session');
+      }
+
+      const { url } = await response.json();
+      window.location.href = url;
+    } catch (error) {
+      setNotification({
+        message: 'Failed to open billing portal',
+        type: 'error',
+      });
+    } finally {
+      setBillingLoading(false);
     }
   };
 
@@ -177,13 +247,14 @@ export default function AccountPage() {
 
       if (response.ok) {
         // Sign out and redirect
+        setNotification({ message: 'Account deleted successfully. Redirecting...', type: 'success' });
         await supabase.auth.signOut();
-        router.push('/');
+        setTimeout(() => router.push('/'), 1500);
       } else {
-        alert('Error deleting account');
+        setNotification({ message: 'Error deleting account', type: 'error' });
       }
     } catch (err) {
-      alert('An error occurred deleting your account');
+      setNotification({ message: 'An error occurred deleting your account', type: 'error' });
     } finally {
       setDeletingAccount(false);
     }
@@ -205,6 +276,13 @@ export default function AccountPage() {
 
   return (
     <>
+      {notification && (
+        <Toast
+          message={notification.message}
+          type={notification.type}
+          onDismiss={() => setNotification(null)}
+        />
+      )}
       <Navbar />
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -316,8 +394,12 @@ export default function AccountPage() {
                   <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg p-6 border border-purple-200">
                     <p className="text-sm text-slate-600 mb-2">Current Plan</p>
                     <p className="text-2xl font-bold text-slate-900 mb-4">Pro</p>
-                    <Button className="bg-gradient-to-r from-blue-600 to-indigo-600">
-                      Manage Billing
+                    <Button
+                      onClick={handleManageBilling}
+                      disabled={billingLoading}
+                      className="bg-gradient-to-r from-blue-600 to-indigo-600"
+                    >
+                      {billingLoading ? 'Loading...' : 'Manage Billing'}
                     </Button>
                   </div>
                 </CardContent>
