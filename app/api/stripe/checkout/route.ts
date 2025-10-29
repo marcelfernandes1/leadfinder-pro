@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
         .eq('id', user.id);
     }
 
-    // Create checkout session
+    // Create checkout session with 7-day free trial
     const session = await stripe.checkout.sessions.create({
       customer: stripeCustomerId,
       line_items: [
@@ -79,6 +79,7 @@ export async function POST(request: NextRequest) {
       success_url: `${request.headers.get('origin') || 'http://localhost:3001'}/dashboard?checkout_success=true`,
       cancel_url: `${request.headers.get('origin') || 'http://localhost:3001'}/pricing`,
       subscription_data: {
+        trial_period_days: 7, // 7-day free trial
         metadata: {
           supabase_uid: user.id,
           plan: plan,
