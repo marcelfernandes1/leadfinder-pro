@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
     // Trigger Inngest background function
     try {
       await inngest.send({
-        name: 'search/discover-leads',
+        name: 'search/discover',
         data: {
           searchId: search.id,
           userId: user.id,
