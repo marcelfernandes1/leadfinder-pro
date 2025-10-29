@@ -41,6 +41,9 @@ export default function PricingSection() {
 
       const data = await response.json();
 
+      // Log the full error for debugging
+      console.log('API Response:', { status: response.status, data });
+
       if (!response.ok) {
         throw new Error(data.error || 'Failed to create checkout session');
       }

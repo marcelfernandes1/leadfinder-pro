@@ -44,6 +44,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
+import { createClient } from '@/lib/supabase/client';
 
 // Force dynamic rendering to avoid pre-render issues with useSearchParams
 export const dynamic = 'force-dynamic';
@@ -80,36 +81,47 @@ interface SearchInfo {
  */
 function Navbar() {
   const router = useRouter();
+  const supabase = createClient();
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    router.push('/');
+  };
 
   return (
-    <nav className="border-b border-slate-200/50 bg-white/80 backdrop-blur-xl sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <nav className="fixed top-0 left-0 right-0 border-b border-slate-200/50 bg-white/80 backdrop-blur-xl z-50">
+      <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* Logo */}
-          <div className="flex items-center space-x-2">
+          {/* Logo - Clickable */}
+          <button
+            onClick={() => router.push('/')}
+            className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
+          >
             <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
               <Target className="w-5 h-5 text-white" />
             </div>
             <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
               LeadFinder Pro
             </span>
-          </div>
+          </button>
 
           {/* Navigation Links */}
           <div className="flex items-center space-x-6">
-            <Button
-              variant="ghost"
-              onClick={() => router.push('/search')}
-              className="font-medium"
-            >
-              <Search className="w-4 h-4 mr-2" />
-              New Search
-            </Button>
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+              <Button
+                variant="ghost"
+                onClick={() => router.push('/search')}
+                className="font-medium hover:shadow-md active:shadow-inner active:opacity-90 transition-all duration-200"
+              >
+                <Search className="w-4 h-4 mr-2" />
+                New Search
+              </Button>
+            </motion.div>
 
             {/* User Menu */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="flex items-center space-x-2">
+                <Button variant="ghost" className="flex items-center space-x-2 hover:shadow-md transition-all duration-200">
                   <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center">
                     <User className="w-4 h-4 text-white" />
                   </div>
@@ -122,7 +134,7 @@ function Navbar() {
                   Settings
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  onClick={() => router.push('/auth/logout')}
+                  onClick={handleSignOut}
                   className="text-red-600 focus:text-red-600"
                 >
                   <LogOut className="w-4 h-4 mr-2" />
@@ -381,7 +393,7 @@ function DashboardContent() {
   const mediumPriorityCount = leads.filter((l) => (l.probability_score || 0) >= 60 && (l.probability_score || 0) < 80).length;
 
   return (
-    <div className="h-screen bg-slate-50 flex flex-col overflow-hidden">
+    <div className="h-screen bg-slate-50 flex flex-col overflow-hidden pt-16">
       <Navbar />
 
       {/* Sidebar + Main Content Wrapper */}
@@ -391,11 +403,14 @@ function DashboardContent() {
           <div className="p-6 border-b border-slate-200">
             <h2 className="font-semibold text-slate-900 mb-4">Menu</h2>
             <nav className="space-y-2">
-              <button className="w-full text-left px-4 py-2 rounded-lg bg-blue-50 text-blue-600 font-medium">
+              <button className="w-full text-left px-4 py-2 rounded-lg bg-blue-50 text-blue-600 font-medium hover:shadow-md active:shadow-inner transition-all duration-200">
                 <Search className="w-4 h-4 inline mr-2" />
                 Searches
               </button>
-              <button className="w-full text-left px-4 py-2 rounded-lg text-slate-700 hover:bg-slate-100">
+              <button
+                onClick={() => router.push('/dashboard/saved')}
+                className="w-full text-left px-4 py-2 rounded-lg text-slate-700 hover:bg-slate-100 hover:shadow-md active:shadow-inner transition-all duration-200"
+              >
                 <Download className="w-4 h-4 inline mr-2" />
                 Saved Leads
               </button>
@@ -405,7 +420,7 @@ function DashboardContent() {
           <div className="p-6 mt-auto border-t border-slate-200">
             <button
               onClick={() => router.push('/account')}
-              className="w-full text-left px-4 py-2 rounded-lg text-slate-700 hover:bg-slate-100 flex items-center"
+              className="w-full text-left px-4 py-2 rounded-lg text-slate-700 hover:bg-slate-100 hover:shadow-md active:shadow-inner flex items-center transition-all duration-200"
             >
               <Settings className="w-4 h-4 mr-2" />
               Settings

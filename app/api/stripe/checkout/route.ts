@@ -27,6 +27,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid plan' }, { status: 400 });
     }
 
+    // Check if Stripe price IDs are configured
+    const priceId = PLAN_PRICES[plan];
+    if (!priceId || priceId.startsWith('price_starter') || priceId.startsWith('price_pro') || priceId.startsWith('price_agency')) {
+      console.error('Stripe price IDs not configured properly');
+      return NextResponse.json(
+        {
+          error: 'Payment system not fully configured. Please contact support or check STRIPE_SETUP.md for setup instructions.'
+        },
+        { status: 500 }
+      );
+    }
+
     // Get authenticated user
     const supabase = await createClient();
     const {
