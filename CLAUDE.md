@@ -593,6 +593,48 @@ Follow the comprehensive implementation plan in `to-do.md` which breaks down all
 
 ## AI Development Rules
 
+### Don't Reinvent the Wheel - CRITICAL
+**ALWAYS prefer existing libraries, APIs, and frameworks over custom code:**
+
+1. **Before writing custom code, search for existing solutions:**
+   - Check npm for well-maintained packages (npm search, npx.com, npmjs.com)
+   - Search GitHub for popular implementations
+   - Look for official libraries from service providers (Stripe, Supabase, Google, etc.)
+   - Check framework-specific ecosystems (Next.js examples, React patterns, etc.)
+   - Search Stack Overflow and documentation sites
+
+2. **Evaluation criteria for using external packages:**
+   - Is it actively maintained? (check last commit date)
+   - Does it have good documentation?
+   - How many weekly downloads? (higher = more battle-tested)
+   - Are there open security issues?
+   - Does it support our tech stack versions? (Next.js 16, React 19, etc.)
+
+3. **Examples of when to use existing solutions:**
+   - ✅ Form validation → Use react-hook-form + Zod (already installed)
+   - ✅ Authentication → Use Supabase Auth (already integrated)
+   - ✅ Email finding → Use Hunter.io API (don't build email scraper)
+   - ✅ Payment processing → Use Stripe (don't build payment system)
+   - ✅ Background jobs → Use Inngest (don't build queue system)
+   - ✅ CSV export → Use json2csv (already installed)
+   - ✅ Animations → Use framer-motion (already installed)
+   - ✅ Date handling → Use date-fns or dayjs (don't write date logic)
+   - ✅ HTTP requests → Use axios or fetch (don't write HTTP layer)
+
+4. **When custom code is acceptable:**
+   - The feature is unique to your business logic (e.g., probability score calculation)
+   - Existing solutions are bloated and you only need 10% of features
+   - Security/privacy concerns with external dependencies
+   - The code is trivially simple (< 20 lines) and a library would be overkill
+
+5. **Time-saving mindset:**
+   - "Has someone already solved this problem?" should be your first question
+   - Spending 15 minutes researching packages saves hours of coding/debugging
+   - Well-tested libraries have edge cases already handled
+   - Popular packages get security updates and community support
+
+**IMPORTANT:** If you're about to write more than 50 lines of code for a common problem (parsing, validation, formatting, HTTP, etc.), STOP and search for an existing solution first. Your job is to build the product, not rebuild the internet.
+
 ### Git Workflow - CRITICAL
 **PUSH TO GITHUB FREQUENTLY** to enable easy rollback when needed:
 
