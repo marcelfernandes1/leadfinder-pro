@@ -32,6 +32,17 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Label } from '@/components/ui/label';
+import { Slider } from '@/components/ui/slider';
 
 // Force dynamic rendering to avoid pre-render issues with useSearchParams
 export const dynamic = 'force-dynamic';
@@ -67,7 +78,6 @@ interface SearchInfo {
  * Professional navigation bar with user avatar and dropdown
  */
 function Navbar() {
-  const [showUserMenu, setShowUserMenu] = useState(false);
   const router = useRouter();
 
   return (
@@ -86,52 +96,39 @@ function Navbar() {
 
           {/* Navigation Links */}
           <div className="flex items-center space-x-6">
-            <button
+            <Button
+              variant="ghost"
               onClick={() => router.push('/search')}
-              className="text-slate-600 hover:text-slate-900 font-medium transition-colors flex items-center space-x-2"
+              className="font-medium"
             >
-              <Search className="w-4 h-4" />
-              <span>New Search</span>
-            </button>
+              <Search className="w-4 h-4 mr-2" />
+              New Search
+            </Button>
 
             {/* User Menu */}
-            <div className="relative">
-              <button
-                onClick={() => setShowUserMenu(!showUserMenu)}
-                className="flex items-center space-x-2 text-slate-700 hover:text-slate-900 transition-colors"
-              >
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center">
-                  <User className="w-4 h-4 text-white" />
-                </div>
-                <ChevronDown className="w-4 h-4" />
-              </button>
-
-              <AnimatePresence>
-                {showUserMenu && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-slate-200 py-2"
-                  >
-                    <button
-                      onClick={() => router.push('/account')}
-                      className="w-full px-4 py-2 text-left text-slate-700 hover:bg-slate-50 flex items-center space-x-2 transition-colors"
-                    >
-                      <Settings className="w-4 h-4" />
-                      <span>Settings</span>
-                    </button>
-                    <button
-                      onClick={() => router.push('/auth/logout')}
-                      className="w-full px-4 py-2 text-left text-red-600 hover:bg-red-50 flex items-center space-x-2 transition-colors"
-                    >
-                      <LogOut className="w-4 h-4" />
-                      <span>Sign Out</span>
-                    </button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="flex items-center space-x-2">
+                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center">
+                    <User className="w-4 h-4 text-white" />
+                  </div>
+                  <ChevronDown className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem onClick={() => router.push('/account')}>
+                  <Settings className="w-4 h-4 mr-2" />
+                  Settings
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => router.push('/auth/logout')}
+                  className="text-red-600 focus:text-red-600"
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  Sign Out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>
@@ -287,12 +284,13 @@ function DashboardContent() {
             </div>
             <h2 className="text-2xl font-bold text-slate-900 mb-2">Oops!</h2>
             <p className="text-red-600 mb-6">{error}</p>
-            <button
+            <Button
               onClick={() => router.push('/search')}
-              className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:shadow-lg hover:scale-105 transition-all duration-200"
+              className="bg-gradient-to-r from-blue-600 to-indigo-600"
+              size="lg"
             >
               Start New Search
-            </button>
+            </Button>
           </div>
         </div>
       </>
@@ -344,21 +342,21 @@ function DashboardContent() {
 
           {/* Action Buttons */}
           <div className="flex flex-wrap gap-3 mt-6">
-            <button
+            <Button
+              variant="outline"
               onClick={() => setShowFilters(!showFilters)}
-              className="flex items-center space-x-2 px-4 py-2 bg-white border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50 hover:border-slate-400 transition-all font-medium"
             >
-              <Filter className="w-4 h-4" />
-              <span>{showFilters ? 'Hide' : 'Show'} Filters</span>
-            </button>
-            <button
+              <Filter className="w-4 h-4 mr-2" />
+              {showFilters ? 'Hide' : 'Show'} Filters
+            </Button>
+            <Button
               onClick={exportToCSV}
               disabled={leads.length === 0}
-              className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:shadow-lg hover:scale-105 transition-all duration-200 font-semibold disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+              className="bg-gradient-to-r from-blue-600 to-indigo-600"
             >
-              <Download className="w-4 h-4" />
-              <span>Export CSV</span>
-            </button>
+              <Download className="w-4 h-4 mr-2" />
+              Export CSV
+            </Button>
           </div>
         </div>
       </div>
@@ -373,56 +371,65 @@ function DashboardContent() {
             className="overflow-hidden"
           >
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-              <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl border border-slate-200 p-6">
-                <div className="flex items-center justify-between mb-6">
+              <Card className="bg-white/80 backdrop-blur-xl">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
                   <div className="flex items-center space-x-2">
                     <Filter className="w-5 h-5 text-indigo-600" />
-                    <h2 className="text-lg font-semibold text-slate-900">Filters</h2>
+                    <CardTitle className="text-lg">Filters</CardTitle>
                   </div>
-                  <button
+                  <Button
+                    variant="link"
+                    size="sm"
                     onClick={() => {
                       setMinScore(0);
                       setMaxScore(100);
                       setHasEmail(false);
                       setHasPhone(false);
                     }}
-                    className="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
+                    className="text-indigo-600 hover:text-indigo-700"
                   >
                     Reset All
-                  </button>
-                </div>
+                  </Button>
+                </CardHeader>
+                <CardContent>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                   {/* Score Range */}
                   <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-3">
+                    <Label className="text-sm font-semibold text-slate-700 mb-3">
                       Score Range: {minScore} - {maxScore}
-                    </label>
-                    <div className="space-y-2">
-                      <input
-                        type="range"
-                        min="0"
-                        max="100"
-                        value={minScore}
-                        onChange={(e) => setMinScore(Number(e.target.value))}
-                        className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
-                      />
-                      <input
-                        type="range"
-                        min="0"
-                        max="100"
-                        value={maxScore}
-                        onChange={(e) => setMaxScore(Number(e.target.value))}
-                        className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
-                      />
+                    </Label>
+                    <div className="space-y-4 pt-2">
+                      <div className="space-y-2">
+                        <span className="text-xs text-slate-500">Min: {minScore}</span>
+                        <Slider
+                          min={0}
+                          max={100}
+                          step={1}
+                          value={[minScore]}
+                          onValueChange={(value) => setMinScore(value[0])}
+                          className="w-full"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <span className="text-xs text-slate-500">Max: {maxScore}</span>
+                        <Slider
+                          min={0}
+                          max={100}
+                          step={1}
+                          value={[maxScore]}
+                          onValueChange={(value) => setMaxScore(value[0])}
+                          className="w-full"
+                        />
+                      </div>
                     </div>
                   </div>
 
                   {/* Contact Filters */}
                   <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-3">
+                    <Label className="text-sm font-semibold text-slate-700 mb-3">
                       Contact Info
-                    </label>
+                    </Label>
                     <div className="space-y-3">
                       <label className="flex items-center cursor-pointer group">
                         <input
@@ -447,10 +454,11 @@ function DashboardContent() {
 
                   {/* Sort By */}
                   <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-3">
+                    <Label htmlFor="sortBy" className="text-sm font-semibold text-slate-700 mb-3">
                       Sort By
-                    </label>
+                    </Label>
                     <select
+                      id="sortBy"
                       value={sortBy}
                       onChange={(e) => setSortBy(e.target.value)}
                       className="w-full px-4 py-2 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-slate-700"
@@ -464,10 +472,11 @@ function DashboardContent() {
 
                   {/* Sort Order */}
                   <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-3">
+                    <Label htmlFor="sortOrder" className="text-sm font-semibold text-slate-700 mb-3">
                       Order
-                    </label>
+                    </Label>
                     <select
+                      id="sortOrder"
                       value={sortOrder}
                       onChange={(e) => setSortOrder(e.target.value)}
                       className="w-full px-4 py-2 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-slate-700"
@@ -477,7 +486,8 @@ function DashboardContent() {
                     </select>
                   </div>
                 </div>
-              </div>
+                </CardContent>
+              </Card>
             </div>
           </motion.div>
         )}
@@ -489,24 +499,26 @@ function DashboardContent() {
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl p-16 text-center border border-slate-200"
           >
-            <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Search className="w-10 h-10 text-slate-400" />
-            </div>
-            <h3 className="text-2xl font-bold text-slate-900 mb-2">No leads found</h3>
-            <p className="text-slate-600 mb-6">Try adjusting your filters or start a new search</p>
-            <button
-              onClick={() => {
-                setMinScore(0);
-                setMaxScore(100);
-                setHasEmail(false);
-                setHasPhone(false);
-              }}
-              className="text-indigo-600 hover:text-indigo-700 font-semibold"
-            >
-              Reset Filters
-            </button>
+            <Card className="bg-white/80 backdrop-blur-xl p-16 text-center">
+              <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Search className="w-10 h-10 text-slate-400" />
+              </div>
+              <CardTitle className="text-2xl mb-2">No leads found</CardTitle>
+              <CardDescription className="mb-6">Try adjusting your filters or start a new search</CardDescription>
+              <Button
+                variant="link"
+                onClick={() => {
+                  setMinScore(0);
+                  setMaxScore(100);
+                  setHasEmail(false);
+                  setHasPhone(false);
+                }}
+                className="text-indigo-600 hover:text-indigo-700"
+              >
+                Reset Filters
+              </Button>
+            </Card>
           </motion.div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -550,15 +562,14 @@ function LeadCard({ lead }: { lead: Lead }) {
   const scoreLabel = score >= 80 ? 'High Priority' : score >= 60 ? 'Medium Priority' : 'Low Priority';
 
   return (
-    <motion.div
-      whileHover={{ y: -4 }}
-      className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 p-6 border border-slate-200 relative overflow-hidden group"
-    >
-      {/* Gradient accent bar */}
-      <div className={cn("absolute top-0 left-0 right-0 h-1 bg-gradient-to-r", scoreColor)} />
+    <motion.div whileHover={{ y: -4 }} className="group">
+      <Card className="bg-white/90 backdrop-blur-sm hover:shadow-2xl transition-all duration-300 relative overflow-hidden">
+        {/* Gradient accent bar */}
+        <div className={cn("absolute top-0 left-0 right-0 h-1 bg-gradient-to-r", scoreColor)} />
 
-      {/* Header with Score Badge */}
-      <div className="flex justify-between items-start mb-4">
+        <CardContent className="pt-6">
+          {/* Header with Score Badge */}
+          <div className="flex justify-between items-start mb-4">
         <div className="flex-1 pr-4">
           <h3 className="text-xl font-bold text-slate-900 mb-1 group-hover:text-indigo-600 transition-colors">
             {lead.business_name}
@@ -579,18 +590,20 @@ function LeadCard({ lead }: { lead: Lead }) {
 
       {/* Priority Label */}
       <div className="mb-5">
-        <span className={cn(
-          "inline-flex items-center space-x-1 px-3 py-1 rounded-full text-xs font-semibold",
-          score >= 80 ? "bg-green-100 text-green-700" : score >= 60 ? "bg-yellow-100 text-yellow-700" : "bg-slate-100 text-slate-600"
+        <Badge className={cn(
+          "inline-flex items-center space-x-1",
+          score >= 80 ? "bg-green-100 text-green-700 hover:bg-green-200" :
+          score >= 60 ? "bg-yellow-100 text-yellow-700 hover:bg-yellow-200" :
+          "bg-slate-100 text-slate-600 hover:bg-slate-200"
         )}>
           <TrendingUp className="w-3 h-3" />
           <span>{scoreLabel}</span>
-        </span>
+        </Badge>
         {!lead.has_automation && (
-          <span className="inline-flex items-center space-x-1 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-700 ml-2">
+          <Badge className="inline-flex items-center space-x-1 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 ml-2">
             <Sparkles className="w-3 h-3" />
             <span>No CRM</span>
-          </span>
+          </Badge>
         )}
       </div>
 
@@ -682,6 +695,8 @@ function LeadCard({ lead }: { lead: Lead }) {
           </div>
         )}
       </div>
+        </CardContent>
+      </Card>
     </motion.div>
   );
 }
