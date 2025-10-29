@@ -84,18 +84,26 @@ function Navbar() {
   const supabase = createClient();
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    router.push('/');
+    try {
+      await supabase.auth.signOut();
+      // Force a hard refresh to clear all state and redirect to home
+      window.location.href = '/';
+    } catch (error) {
+      console.error('Error signing out:', error);
+      // Even if there's an error, redirect to home
+      window.location.href = '/';
+    }
   };
 
   return (
-    <nav className="border-b border-slate-200/50 bg-white/80 backdrop-blur-xl z-50 flex-shrink-0">
+    <nav className="sticky top-0 border-b border-slate-200/50 bg-white/80 backdrop-blur-xl z-50 flex-shrink-0">
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo - Clickable */}
           <button
-            onClick={() => router.push('/')}
-            className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
+            onClick={() => router.push('/dashboard')}
+            className="flex items-center space-x-2 hover:opacity-80 transition-opacity cursor-pointer"
+            type="button"
           >
             <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
               <Target className="w-5 h-5 text-white" />
@@ -110,7 +118,7 @@ function Navbar() {
             <Button
               variant="ghost"
               onClick={() => router.push('/search')}
-              className="font-medium hover:shadow-md hover:bg-slate-100 active:shadow-inner active:opacity-90 transition-all duration-200"
+              className="font-medium hover:shadow-md hover:bg-blue-50 hover:text-blue-700 active:shadow-inner active:scale-95 transition-all duration-200 cursor-pointer"
             >
               <Search className="w-4 h-4 mr-2" />
               New Search
@@ -119,7 +127,7 @@ function Navbar() {
             {/* User Menu */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="flex items-center space-x-2 hover:shadow-md transition-all duration-200">
+                <Button variant="ghost" className="flex items-center space-x-2 hover:shadow-md hover:bg-slate-100 transition-all duration-200 cursor-pointer">
                   <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-full flex items-center justify-center">
                     <User className="w-4 h-4 text-white" />
                   </div>
@@ -127,13 +135,13 @@ function Navbar() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem onClick={() => router.push('/account')}>
+                <DropdownMenuItem onClick={() => router.push('/account')} className="cursor-pointer">
                   <Settings className="w-4 h-4 mr-2" />
                   Settings
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={handleSignOut}
-                  className="text-red-600 focus:text-red-600"
+                  className="text-red-600 focus:text-red-600 cursor-pointer"
                 >
                   <LogOut className="w-4 h-4 mr-2" />
                   Sign Out
@@ -295,11 +303,17 @@ function DashboardContent() {
             <div className="p-6 border-b border-slate-200">
               <h2 className="font-semibold text-slate-900 mb-4">Menu</h2>
               <nav className="space-y-2">
-                <button className="w-full text-left px-4 py-2 rounded-lg bg-blue-50 text-blue-600 font-medium">
+                <button
+                  onClick={() => router.push('/dashboard')}
+                  className="w-full text-left px-4 py-2 rounded-lg bg-blue-50 text-blue-600 font-medium hover:bg-blue-100 transition-all duration-200 cursor-pointer"
+                >
                   <Search className="w-4 h-4 inline mr-2" />
                   Searches
                 </button>
-                <button className="w-full text-left px-4 py-2 rounded-lg text-slate-700 hover:bg-slate-100">
+                <button
+                  onClick={() => router.push('/dashboard/saved')}
+                  className="w-full text-left px-4 py-2 rounded-lg text-slate-700 hover:bg-slate-100 hover:text-slate-900 hover:shadow-md active:shadow-inner transition-all duration-200 cursor-pointer"
+                >
                   <Download className="w-4 h-4 inline mr-2" />
                   Saved Leads
                 </button>
@@ -309,7 +323,7 @@ function DashboardContent() {
             <div className="p-6 mt-auto border-t border-slate-200">
               <button
                 onClick={() => router.push('/account')}
-                className="w-full text-left px-4 py-2 rounded-lg text-slate-700 hover:bg-slate-100 flex items-center"
+                className="w-full text-left px-4 py-2 rounded-lg text-slate-700 hover:bg-slate-100 hover:text-slate-900 hover:shadow-md active:shadow-inner flex items-center transition-all duration-200 cursor-pointer"
               >
                 <Settings className="w-4 h-4 mr-2" />
                 Settings
@@ -328,7 +342,7 @@ function DashboardContent() {
                 </div>
                 <Button
                   onClick={() => router.push('/search')}
-                  className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white"
+                  className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 hover:shadow-lg active:scale-95 transition-all duration-200 cursor-pointer"
                   size="lg"
                 >
                   <Search className="w-4 h-4 mr-2" />
@@ -349,7 +363,7 @@ function DashboardContent() {
                 </p>
                 <Button
                   onClick={() => router.push('/search')}
-                  className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white w-full"
+                  className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 hover:shadow-lg active:scale-95 transition-all duration-200 cursor-pointer w-full"
                   size="lg"
                 >
                   <Search className="w-4 h-4 mr-2" />
