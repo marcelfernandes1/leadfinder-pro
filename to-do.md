@@ -825,18 +825,18 @@ Keep it under 200 lines total.
 ---
 
 ### 32. Bulk Status Update API Endpoint
-- [ ] Create `/app/api/leads/bulk-status/route.ts`
-- [ ] Accept POST request with body:
+- [x] Create `/app/api/leads/bulk-status/route.ts`
+- [x] Accept POST request with body:
   ```json
   {
     "leadIds": ["uuid1", "uuid2", ...],
     "status": "messaged"
   }
   ```
-- [ ] Validate input (max 100 leads at a time)
-- [ ] Update all lead_status records in a transaction
-- [ ] Return success count
-- [ ] Add authentication check
+- [x] Validate input (max 100 leads at a time)
+- [x] Update all lead_status records in a transaction
+- [x] Return success count
+- [x] Add authentication check
 
 **AI Coding Note:** Use Supabase transaction or batch upsert. Keep it atomic.
 
