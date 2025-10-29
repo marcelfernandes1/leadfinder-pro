@@ -97,12 +97,18 @@ export default function AccountPage() {
   const supabase = createClient();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [newEmail, setNewEmail] = useState('');
+  const [emailLoading, setEmailLoading] = useState(false);
+  const [emailMessage, setEmailMessage] = useState('');
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
 
   useEffect(() => {
     const getUser = async () => {
       const { data } = await supabase.auth.getUser();
       if (data.user) {
         setUser(data.user);
+        setNewEmail(data.user.email || '');
       } else {
         router.push('/auth/login');
       }
@@ -111,6 +117,77 @@ export default function AccountPage() {
 
     getUser();
   }, [router, supabase]);
+
+  /**
+   * Handle email update
+   */
+  const handleEmailUpdate = async () => {
+    if (!newEmail || newEmail === user?.email) {
+      setEmailMessage('Please enter a different email address');
+      return;
+    }
+
+    setEmailLoading(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ email: newEmail });
+      if (error) {
+        setEmailMessage(`Error: ${error.message}`);
+      } else {
+        setEmailMessage('Check your email to confirm the change');
+      }
+    } catch (err) {
+      setEmailMessage('An error occurred updating your email');
+    } finally {
+      setEmailLoading(false);
+    }
+  };
+
+  /**
+   * Handle password reset
+   */
+  const handlePasswordReset = async () => {
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(user?.email);
+      if (error) {
+        alert(`Error: ${error.message}`);
+      } else {
+        alert('Password reset email sent! Check your inbox.');
+      }
+    } catch (err) {
+      alert('An error occurred sending reset email');
+    }
+  };
+
+  /**
+   * Handle account deletion
+   */
+  const handleDeleteAccount = async () => {
+    if (!deleteConfirm) {
+      setDeleteConfirm(true);
+      return;
+    }
+
+    setDeletingAccount(true);
+    try {
+      // Call API to delete account
+      const response = await fetch('/api/auth/delete-account', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (response.ok) {
+        // Sign out and redirect
+        await supabase.auth.signOut();
+        router.push('/');
+      } else {
+        alert('Error deleting account');
+      }
+    } catch (err) {
+      alert('An error occurred deleting your account');
+    } finally {
+      setDeletingAccount(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -158,12 +235,30 @@ export default function AccountPage() {
                 <CardContent className="space-y-6">
                   <div>
                     <label className="text-sm font-medium text-slate-700 mb-2 block">Email Address</label>
-                    <input
-                      type="email"
-                      value={user?.email || ''}
-                      disabled
-                      className="w-full px-4 py-2 bg-slate-100 border border-slate-200 rounded-lg text-slate-600 cursor-not-allowed"
-                    />
+                    <div className="flex gap-2">
+                      <input
+                        type="email"
+                        value={newEmail}
+                        onChange={(e) => {
+                          setNewEmail(e.target.value);
+                          setEmailMessage('');
+                        }}
+                        className="flex-1 px-4 py-2 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        placeholder="your@email.com"
+                      />
+                      <Button
+                        onClick={handleEmailUpdate}
+                        disabled={emailLoading}
+                        className="bg-gradient-to-r from-blue-600 to-indigo-600"
+                      >
+                        {emailLoading ? 'Saving...' : 'Update'}
+                      </Button>
+                    </div>
+                    {emailMessage && (
+                      <p className={`text-xs mt-2 ${emailMessage.includes('Error') ? 'text-red-600' : 'text-green-600'}`}>
+                        {emailMessage}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label className="text-sm font-medium text-slate-700 mb-2 block">Account Created</label>
@@ -194,10 +289,10 @@ export default function AccountPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <p className="text-sm text-slate-600 mb-4">
-                    To change your password, use the password reset option in the login page.
+                    Send a password reset email to your inbox.
                   </p>
-                  <Button variant="outline" className="w-full" onClick={() => router.push('/auth/login')}>
-                    Reset Password
+                  <Button variant="outline" className="w-full" onClick={handlePasswordReset}>
+                    Send Reset Email
                   </Button>
                 </CardContent>
               </Card>
@@ -294,12 +389,26 @@ export default function AccountPage() {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <Button variant="destructive" className="w-full">
-                    Delete Account
+                  <Button
+                    variant="destructive"
+                    className="w-full"
+                    onClick={handleDeleteAccount}
+                    disabled={deletingAccount}
+                  >
+                    {deleteConfirm
+                      ? deletingAccount
+                        ? 'Deleting Account...'
+                        : 'Click Again to Confirm'
+                      : 'Delete Account'}
                   </Button>
                   <p className="text-xs text-slate-500">
                     This action cannot be undone. All your data will be permanently deleted.
                   </p>
+                  {deleteConfirm && (
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                      <p className="text-xs text-red-700 font-semibold">⚠️ Are you absolutely sure? Click the button again to confirm.</p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </motion.div>
