@@ -279,165 +279,72 @@ function DashboardContent() {
     return (
       <>
         <Navbar />
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-          {/* Welcome Hero */}
-          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-              <div className="text-center space-y-4">
-                <h1 className="text-5xl md:text-6xl font-bold mb-4">
-                  Welcome to Your Lead Dashboard
-                </h1>
-                <p className="text-xl text-blue-100 max-w-3xl mx-auto">
-                  Start discovering qualified local businesses that need your services. Find complete contact information and AI-calculated buying probability scores.
-                </p>
-                <div className="pt-6">
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => router.push('/search')}
-                    className="bg-white text-indigo-600 hover:bg-blue-50 font-bold py-4 px-12 rounded-xl text-lg shadow-xl transition-all"
-                  >
-                    <Search className="w-5 h-5 inline mr-2" />
-                    Start Your First Search
-                  </motion.button>
-                </div>
-              </div>
+        <div className="min-h-screen bg-slate-50 flex">
+          {/* Sidebar */}
+          <div className="hidden md:flex w-64 bg-white border-r border-slate-200 flex-col">
+            <div className="p-6 border-b border-slate-200">
+              <h2 className="font-semibold text-slate-900 mb-4">Menu</h2>
+              <nav className="space-y-2">
+                <button className="w-full text-left px-4 py-2 rounded-lg bg-blue-50 text-blue-600 font-medium">
+                  <Search className="w-4 h-4 inline mr-2" />
+                  Searches
+                </button>
+                <button className="w-full text-left px-4 py-2 rounded-lg text-slate-700 hover:bg-slate-100">
+                  <Download className="w-4 h-4 inline mr-2" />
+                  Saved Leads
+                </button>
+              </nav>
+            </div>
+
+            <div className="p-6 mt-auto border-t border-slate-200">
+              <button
+                onClick={() => router.push('/account')}
+                className="w-full text-left px-4 py-2 rounded-lg text-slate-700 hover:bg-slate-100 flex items-center"
+              >
+                <Settings className="w-4 h-4 mr-2" />
+                Settings
+              </button>
             </div>
           </div>
 
           {/* Main Content */}
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-            {/* Stats Section */}
-            <div className="grid md:grid-cols-3 gap-6 mb-16">
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-                <Card className="bg-white/80 backdrop-blur-sm hover:shadow-xl transition-shadow">
-                  <CardContent className="pt-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-slate-600 text-sm font-medium mb-2">Ready to Discover</p>
-                        <p className="text-4xl font-bold text-slate-900">1000s</p>
-                        <p className="text-xs text-slate-500 mt-1">Qualified leads per search</p>
-                      </div>
-                      <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
-                        <Target className="w-8 h-8 text-white" />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-                <Card className="bg-white/80 backdrop-blur-sm hover:shadow-xl transition-shadow">
-                  <CardContent className="pt-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-slate-600 text-sm font-medium mb-2">Average Score</p>
-                        <p className="text-4xl font-bold text-slate-900">72</p>
-                        <p className="text-xs text-slate-500 mt-1">Out of 100</p>
-                      </div>
-                      <div className="w-16 h-16 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-xl flex items-center justify-center shadow-lg">
-                        <TrendingUp className="w-8 h-8 text-white" />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-                <Card className="bg-white/80 backdrop-blur-sm hover:shadow-xl transition-shadow">
-                  <CardContent className="pt-6">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-slate-600 text-sm font-medium mb-2">Success Rate</p>
-                        <p className="text-4xl font-bold text-slate-900">80%</p>
-                        <p className="text-xs text-slate-500 mt-1">Contact accuracy</p>
-                      </div>
-                      <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
-                        <CheckCircle className="w-8 h-8 text-white" />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
+          <div className="flex-1 flex flex-col">
+            {/* Top Bar */}
+            <div className="bg-white border-b border-slate-200 px-8 py-6">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h1 className="text-2xl font-bold text-slate-900">Searches</h1>
+                  <p className="text-sm text-slate-600 mt-1">Start a new search to discover leads</p>
+                </div>
+                <Button
+                  onClick={() => router.push('/search')}
+                  className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white"
+                  size="lg"
+                >
+                  <Search className="w-4 h-4 mr-2" />
+                  New Search
+                </Button>
+              </div>
             </div>
 
-            {/* How It Works Section */}
-            <div className="mb-16">
-              <div className="text-center mb-12">
-                <Badge className="bg-blue-100 text-blue-700 border-0 mb-4 px-6 py-2 text-sm">
-                  <Sparkles className="w-4 h-4 mr-2 inline" />
-                  Four Simple Steps
-                </Badge>
-                <h2 className="text-4xl font-bold text-slate-900 mb-4">How It Works</h2>
-                <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-                  Discover qualified leads in minutes, not weeks
+            {/* Empty State */}
+            <div className="flex-1 flex items-center justify-center px-8 py-12">
+              <div className="text-center max-w-md">
+                <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <Search className="w-10 h-10 text-slate-400" />
+                </div>
+                <h2 className="text-2xl font-bold text-slate-900 mb-3">No searches yet</h2>
+                <p className="text-slate-600 mb-8">
+                  Create your first search to find qualified local businesses in your target market.
                 </p>
-              </div>
-
-              <div className="grid md:grid-cols-4 gap-6">
-                {[
-                  { number: '1', title: 'Search', description: 'Enter location & industry', icon: Search },
-                  { number: '2', title: 'Discover', description: '100+ local businesses found', icon: Globe },
-                  { number: '3', title: 'Enrich', description: 'Get email & contact info', icon: Mail },
-                  { number: '4', title: 'Score', description: 'AI calculates buying probability', icon: TrendingUp },
-                ].map((step, idx) => {
-                  const StepIcon = step.icon;
-                  return (
-                    <motion.div
-                      key={idx}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.3 + idx * 0.1 }}
-                    >
-                      <Card className="bg-white/80 backdrop-blur-sm text-center hover:shadow-xl transition-all relative">
-                        <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full flex items-center justify-center shadow-lg">
-                          <span className="text-white font-bold text-lg">{step.number}</span>
-                        </div>
-                        <CardContent className="pt-12 pb-6">
-                          <div className="w-12 h-12 bg-slate-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                            <StepIcon className="w-6 h-6 text-indigo-600" />
-                          </div>
-                          <h3 className="text-xl font-bold text-slate-900 mb-2">{step.title}</h3>
-                          <p className="text-slate-600 text-sm">{step.description}</p>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Features Section */}
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-12 border border-slate-200">
-              <h2 className="text-3xl font-bold text-slate-900 mb-8 text-center">What You Get</h2>
-              <div className="grid md:grid-cols-3 gap-8">
-                <div className="flex space-x-4">
-                  <div className="flex-shrink-0 w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <Mail className="w-6 h-6 text-blue-600" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-slate-900 mb-2">Email Addresses</h3>
-                    <p className="text-slate-600">Find 60%+ business email addresses</p>
-                  </div>
-                </div>
-                <div className="flex space-x-4">
-                  <div className="flex-shrink-0 w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center">
-                    <Phone className="w-6 h-6 text-indigo-600" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-slate-900 mb-2">Phone Numbers</h3>
-                    <p className="text-slate-600">90%+ verified phone numbers</p>
-                  </div>
-                </div>
-                <div className="flex space-x-4">
-                  <div className="flex-shrink-0 w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <Sparkles className="w-6 h-6 text-purple-600" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold text-slate-900 mb-2">AI Scoring</h3>
-                    <p className="text-slate-600">Probability scores (0-100) for buying</p>
-                  </div>
-                </div>
+                <Button
+                  onClick={() => router.push('/search')}
+                  className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white w-full"
+                  size="lg"
+                >
+                  <Search className="w-4 h-4 mr-2" />
+                  Start New Search
+                </Button>
               </div>
             </div>
           </div>
@@ -474,77 +381,106 @@ function DashboardContent() {
   const mediumPriorityCount = leads.filter((l) => (l.probability_score || 0) >= 60 && (l.probability_score || 0) < 80).length;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div className="min-h-screen bg-slate-50 flex">
       <Navbar />
 
-      {/* Header with Stats */}
-      <div className="bg-white/80 backdrop-blur-xl border-b border-slate-200/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-            <div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-slate-900 to-indigo-900 bg-clip-text text-transparent mb-2">
-                Your Leads
-              </h1>
-              {searchInfo && (
-                <div className="flex items-center gap-2 text-slate-600">
-                  <Target className="w-4 h-4" />
-                  <p className="text-sm">
-                    {searchInfo.location}
-                    {searchInfo.industry && ` • ${searchInfo.industry}`}
-                  </p>
-                </div>
-              )}
-            </div>
+      {/* Sidebar */}
+      <div className="hidden md:flex w-64 bg-white border-r border-slate-200 flex-col fixed left-0 top-16 h-[calc(100vh-4rem)]">
+        <div className="p-6 border-b border-slate-200">
+          <h2 className="font-semibold text-slate-900 mb-4">Menu</h2>
+          <nav className="space-y-2">
+            <button className="w-full text-left px-4 py-2 rounded-lg bg-blue-50 text-blue-600 font-medium">
+              <Search className="w-4 h-4 inline mr-2" />
+              Searches
+            </button>
+            <button className="w-full text-left px-4 py-2 rounded-lg text-slate-700 hover:bg-slate-100">
+              <Download className="w-4 h-4 inline mr-2" />
+              Saved Leads
+            </button>
+          </nav>
+        </div>
 
-            {/* Stats Cards */}
-            <div className="flex gap-4">
-              <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl px-4 py-3 border border-green-200">
-                <div className="text-2xl font-bold text-green-700">{highPriorityCount}</div>
-                <div className="text-xs text-green-600">High Priority</div>
-              </div>
-              <div className="bg-gradient-to-br from-yellow-50 to-amber-50 rounded-xl px-4 py-3 border border-yellow-200">
-                <div className="text-2xl font-bold text-yellow-700">{mediumPriorityCount}</div>
-                <div className="text-xs text-yellow-600">Medium</div>
-              </div>
-              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl px-4 py-3 border border-blue-200">
-                <div className="text-2xl font-bold text-blue-700">{leads.length}</div>
-                <div className="text-xs text-blue-600">Total Leads</div>
-              </div>
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex flex-wrap gap-3 mt-6">
-            <Button
-              variant="outline"
-              onClick={() => setShowFilters(!showFilters)}
-            >
-              <Filter className="w-4 h-4 mr-2" />
-              {showFilters ? 'Hide' : 'Show'} Filters
-            </Button>
-            <Button
-              onClick={exportToCSV}
-              disabled={leads.length === 0}
-              className="bg-gradient-to-r from-blue-600 to-indigo-600"
-            >
-              <Download className="w-4 h-4 mr-2" />
-              Export CSV
-            </Button>
-          </div>
+        <div className="p-6 mt-auto border-t border-slate-200">
+          <button
+            onClick={() => router.push('/account')}
+            className="w-full text-left px-4 py-2 rounded-lg text-slate-700 hover:bg-slate-100 flex items-center"
+          >
+            <Settings className="w-4 h-4 mr-2" />
+            Settings
+          </button>
         </div>
       </div>
 
-      {/* Filters Panel */}
-      <AnimatePresence>
-        {showFilters && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden"
-          >
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-              <Card className="bg-white/80 backdrop-blur-xl">
+      {/* Main Content */}
+      <div className="flex-1 md:ml-64 w-full pt-16 flex flex-col">
+        {/* Header with Stats */}
+        <div className="bg-white border-b border-slate-200">
+          <div className="px-8 py-8">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-6">
+              <div>
+                <h1 className="text-3xl font-bold text-slate-900 mb-2">
+                  Leads
+                </h1>
+                {searchInfo && (
+                  <div className="flex items-center gap-2 text-slate-600">
+                    <Target className="w-4 h-4" />
+                    <p className="text-sm">
+                      {searchInfo.location}
+                      {searchInfo.industry && ` • ${searchInfo.industry}`}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Stats Cards */}
+              <div className="flex gap-4">
+                <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg px-4 py-3 border border-green-200">
+                  <div className="text-2xl font-bold text-green-700">{highPriorityCount}</div>
+                  <div className="text-xs text-green-600">High Priority</div>
+                </div>
+                <div className="bg-gradient-to-br from-yellow-50 to-amber-50 rounded-lg px-4 py-3 border border-yellow-200">
+                  <div className="text-2xl font-bold text-yellow-700">{mediumPriorityCount}</div>
+                  <div className="text-xs text-yellow-600">Medium</div>
+                </div>
+                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg px-4 py-3 border border-blue-200">
+                  <div className="text-2xl font-bold text-blue-700">{leads.length}</div>
+                  <div className="text-xs text-blue-600">Total Leads</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex flex-wrap gap-3">
+              <Button
+                variant="outline"
+                onClick={() => setShowFilters(!showFilters)}
+              >
+                <Filter className="w-4 h-4 mr-2" />
+                {showFilters ? 'Hide' : 'Show'} Filters
+              </Button>
+              <Button
+                onClick={exportToCSV}
+                disabled={leads.length === 0}
+                className="bg-gradient-to-r from-blue-600 to-indigo-600"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Export CSV
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Filters Panel */}
+        <AnimatePresence>
+          {showFilters && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden"
+            >
+              <div className="px-8 py-6 bg-slate-100 border-t border-slate-200">
+                <Card className="bg-white">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
                   <div className="flex items-center space-x-2">
                     <Filter className="w-5 h-5 text-indigo-600" />
