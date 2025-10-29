@@ -27,6 +27,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Slider } from '@/components/ui/slider'
 import { Loader2 } from 'lucide-react'
+import Navbar from '@/components/Navbar'
 
 /**
  * Form validation schema
@@ -99,24 +100,18 @@ export default function SearchPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow">
-        <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between">
-            <h1 className="text-3xl font-bold tracking-tight text-gray-900">Find Leads</h1>
-            <Button
-              variant="ghost"
-              onClick={() => router.push('/dashboard')}
-              className="text-sm"
-            >
-              ← Back to Dashboard
-            </Button>
-          </div>
-        </div>
-      </header>
+      {/* Navbar */}
+      <Navbar />
 
       {/* Main Content */}
       <main className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
+        {/* Page Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900">Find Leads</h1>
+          <p className="mt-2 text-gray-600">
+            Discover qualified local service businesses that need CRM and marketing automation
+          </p>
+        </div>
         <Card>
           <CardHeader>
             <CardTitle className="text-2xl">Discover Qualified Leads</CardTitle>

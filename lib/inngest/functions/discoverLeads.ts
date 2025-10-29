@@ -14,6 +14,7 @@ import { searchBusinesses, GoogleMapsBusiness } from '@/lib/services/googleMaps'
 import { findEmail } from '@/lib/services/emailFinder';
 import { detectCRM } from '@/lib/services/crmDetector';
 import { calculateProbabilityScore } from '@/lib/utils/scoreCalculator';
+import { incrementUsage } from '@/lib/utils/checkUsageLimits';
 import { createClient } from '@/lib/supabase/server';
 
 interface DiscoverLeadsEvent {
@@ -195,7 +196,22 @@ export const discoverLeads = inngest.createFunction(
         .eq('id', searchId);
     });
 
-    // Step 6: Complete
+    // Step 6: Increment user's usage counter
+    await step.run('increment-usage', async () => {
+      const supabase = await createClient();
+      const leadsFound = savedLeadIds.length;
+
+      console.log(`[Inngest] Incrementing usage for user ${userId} by ${leadsFound} leads`);
+
+      const result = await incrementUsage(supabase, userId, leadsFound);
+
+      if (!result.success) {
+        console.error(`[Inngest] Failed to increment usage:`, result.error);
+        // Don't fail the whole process, just log the error
+      }
+    });
+
+    // Step 7: Complete
     await step.run('complete-search', async () => {
       const supabase = await createClient();
       await supabase

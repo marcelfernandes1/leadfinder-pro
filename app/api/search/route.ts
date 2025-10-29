@@ -18,6 +18,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
 import { inngest } from '@/lib/inngest/client';
+import { checkUsageLimits } from '@/lib/utils/checkUsageLimits';
 
 // Request body validation schema
 const searchSchema = z.object({
@@ -48,8 +49,29 @@ export async function POST(request: NextRequest) {
 
     console.log(`[API] User authenticated: ${user.id}`);
 
-    // TODO: Check usage limits based on subscription tier
-    // For now, we'll skip this check and implement it later
+    // Check usage limits based on subscription tier
+    const usageCheck = await checkUsageLimits(
+      supabase,
+      user.id,
+      validatedData.requestedCount
+    );
+
+    console.log('[API] Usage check:', usageCheck);
+
+    if (!usageCheck.canProceed) {
+      return NextResponse.json(
+        {
+          error: usageCheck.message || 'Usage limit exceeded',
+          details: {
+            currentUsage: usageCheck.currentUsage,
+            limit: usageCheck.limit,
+            tier: usageCheck.tier,
+            remainingLeads: usageCheck.remainingLeads,
+          },
+        },
+        { status: 403 }
+      );
+    }
 
     // Create search record in database
     const { data: search, error: dbError } = await supabase

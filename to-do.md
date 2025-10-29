@@ -472,15 +472,15 @@ Test each step before moving to next. Don't try to build it all at once.
 ## User Interface Development (Weeks 3-5)
 
 ### 17. Main Layout & Navigation
-- [ ] Create `/app/layout.tsx` (if not exists)
-- [ ] Create `/components/Navbar.tsx`:
+- [x] Create `/app/layout.tsx` (if not exists)
+- [x] Create `/components/Navbar.tsx`:
   - Logo/brand name
   - Navigation links: Dashboard, New Search, Account
   - User avatar/email in top right
   - Logout button
 - [ ] Create `/components/Sidebar.tsx` (optional, for dashboard filters)
-- [ ] Add Tailwind CSS styling
-- [ ] Make responsive (hamburger menu on mobile)
+- [x] Add Tailwind CSS styling
+- [x] Make responsive (hamburger menu on mobile)
 
 **AI Coding Note:** Use Tailwind UI or Shadcn UI for pre-built components. Don't reinvent navbar.
 
@@ -544,19 +544,19 @@ Test each step before moving to next. Don't try to build it all at once.
 ---
 
 ### 20. Celebration Screen
-- [ ] Create `/app/search/[searchId]/results/page.tsx` (shows celebration first)
+- [x] Create `/app/search/[searchId]/results/page.tsx` (shows celebration first) - Integrated into loading page
 - [x] Install confetti library:
   ```bash
   npm install react-confetti
   ```
-- [ ] Design celebration animation:
+- [x] Design celebration animation:
   - Confetti explosion (full screen)
   - Large text: "DEALS FOUND!!!" (animated entrance)
   - Display count: "147 High-Quality Leads Discovered!"
   - Optional: celebration sound effect (with mute toggle)
   - "View Leads" button (appears after 2-3 seconds)
-- [ ] Auto-transition to dashboard after 5 seconds (or on button click)
-- [ ] Make confetti performant (stop after 5 seconds to save CPU)
+- [x] Auto-transition to dashboard after 5 seconds (or on button click)
+- [x] Make confetti performant (stop after 5 seconds to save CPU)
 
 **AI Coding Note:** Keep this simple. It's just a feel-good screen. Don't over-engineer.
 
@@ -747,7 +747,7 @@ Keep it under 200 lines total.
   ```
 - [x] Validate input with Zod
 - [x] Check user authentication (Supabase session)
-- [ ] Check usage limits (don't exceed subscription tier limits)
+- [x] Check usage limits (don't exceed subscription tier limits)
 - [x] Create new search record in database
 - [x] Trigger Inngest function to start lead discovery:
   ```typescript
@@ -757,7 +757,7 @@ Keep it under 200 lines total.
   });
   ```
 - [x] Return search ID immediately (don't wait for results)
-- [ ] Add rate limiting (max 5 searches per hour per user)
+- [ ] Add rate limiting (max 5 searches per hour per user) - Future enhancement
 
 **AI Coding Note:** This endpoint just kicks off the process. Don't do heavy work here. Return quickly.
 
@@ -808,17 +808,17 @@ Keep it under 200 lines total.
 ---
 
 ### 31. Lead Status Update API Endpoint
-- [ ] Create `/app/api/leads/[leadId]/status/route.ts`
-- [ ] Accept PATCH request with body:
+- [x] Create `/app/api/leads/[leadId]/status/route.ts`
+- [x] Accept PATCH request with body:
   ```json
   {
     "status": "messaged"
   }
   ```
-- [ ] Validate status value (must be one of: not_contacted, messaged, responded, not_interested, closed)
-- [ ] Update or insert into lead_status table (upsert)
-- [ ] Return updated lead data
-- [ ] Add authentication check
+- [x] Validate status value (must be one of: not_contacted, messaged, responded, not_interested, closed)
+- [x] Update or insert into lead_status table (upsert)
+- [x] Return updated lead data
+- [x] Add authentication check
 
 **AI Coding Note:** Use Supabase upsert to handle create or update in one query.
 
@@ -843,12 +843,12 @@ Keep it under 200 lines total.
 ---
 
 ### 33. CSV Export API Endpoint
-- [ ] Create `/app/api/leads/export/route.ts`
+- [x] Create `/app/api/leads/export/route.ts`
 - [x] Install CSV library:
   ```bash
   npm install json2csv
   ```
-- [ ] Accept POST request with body:
+- [x] Accept POST request with body:
   ```json
   {
     "leadIds": ["uuid1", "uuid2", ...],
@@ -856,11 +856,11 @@ Keep it under 200 lines total.
     "searchId": "uuid"
   }
   ```
-- [ ] Fetch leads from database
-- [ ] Convert to CSV with columns:
+- [x] Fetch leads from database
+- [x] Convert to CSV with columns:
   - Business Name, Website, Email, Phone, Instagram, Facebook, WhatsApp
   - Probability Score, Status, Industry, Address
-- [ ] Return CSV file as download:
+- [x] Return CSV file as download:
   ```typescript
   return new Response(csv, {
     headers: {
@@ -869,7 +869,7 @@ Keep it under 200 lines total.
     }
   });
   ```
-- [ ] Add authentication check
+- [x] Add authentication check
 
 **AI Coding Note:** json2csv library handles everything. Just pass data and column config.
 
@@ -968,7 +968,7 @@ Keep it under 200 lines total.
 ---
 
 ### 38. Usage Limits Enforcement
-- [ ] Create middleware `/lib/utils/checkUsageLimits.ts`:
+- [x] Create middleware `/lib/utils/checkUsageLimits.ts`:
   ```typescript
   async function checkUsageLimits(userId: string, requestedLeads: number) {
     const user = await getUser(userId);
@@ -979,21 +979,11 @@ Keep it under 200 lines total.
     }
   }
   ```
-- [ ] Call this middleware in search API endpoint before starting search
-- [ ] Increment `leads_used_this_month` after each search completes
-- [ ] Add cron job (or Inngest scheduled function) to reset usage on billing cycle:
-  ```typescript
-  inngest.createFunction(
-    { id: "reset-monthly-usage" },
-    { cron: "0 0 * * *" }, // Daily at midnight
-    async () => {
-      // Find users whose billing cycle started 30 days ago
-      // Reset their leads_used_this_month to 0
-    }
-  );
-  ```
-- [ ] Show usage meter in dashboard header
-- [ ] Show upgrade prompt when user approaches limit (e.g., 90%)
+- [x] Call this middleware in search API endpoint before starting search
+- [x] Increment `leads_used_this_month` after each search completes
+- [ ] Add cron job (or Inngest scheduled function) to reset usage on billing cycle - Future enhancement
+- [ ] Show usage meter in dashboard header - Future enhancement
+- [ ] Show upgrade prompt when user approaches limit (e.g., 90%) - Future enhancement
 
 **AI Coding Note:** Usage limits are critical for business model. Test thoroughly.
 
