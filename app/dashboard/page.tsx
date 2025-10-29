@@ -89,7 +89,7 @@ function Navbar() {
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 border-b border-slate-200/50 bg-white/80 backdrop-blur-xl z-50">
+    <nav className="border-b border-slate-200/50 bg-white/80 backdrop-blur-xl z-50 flex-shrink-0">
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo - Clickable */}
@@ -391,9 +391,9 @@ function DashboardContent() {
   const mediumPriorityCount = leads.filter((l) => (l.probability_score || 0) >= 60 && (l.probability_score || 0) < 80).length;
 
   return (
-    <div className="flex flex-col h-screen bg-slate-50">
+    <div className="h-screen w-screen overflow-hidden bg-slate-50 flex flex-col">
       <Navbar />
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex-1 flex overflow-hidden">
         {/* Sidebar */}
         <div className="hidden md:flex w-64 bg-white border-r border-slate-200 flex-col flex-shrink-0 overflow-y-auto">
           <div className="p-6 border-b border-slate-200">
