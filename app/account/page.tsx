@@ -57,7 +57,7 @@ function Toast({ message, type, onDismiss }: { message: string; type: 'success' 
       initial={{ opacity: 0, y: -20, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -20, scale: 0.95 }}
-      className={`fixed top-6 right-6 ${bgColor} border rounded-lg p-4 shadow-lg z-50 max-w-sm flex items-start gap-3`}
+      className={`fixed top-6 right-6 ${bgColor} border rounded-lg p-4 shadow-2xl z-[9999] max-w-sm flex items-start gap-3`}
     >
       <IconComponent className={`w-5 h-5 ${iconColor} flex-shrink-0 mt-0.5`} />
       <div className="flex-1">
@@ -324,13 +324,18 @@ export default function AccountPage() {
                         className="flex-1 px-4 py-2 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                         placeholder="your@email.com"
                       />
-                      <Button
-                        onClick={handleEmailUpdate}
-                        disabled={emailLoading}
-                        className="bg-gradient-to-r from-blue-600 to-indigo-600"
+                      <motion.div
+                        whileTap={{ scale: 0.98 }}
+                        className="w-auto"
                       >
-                        {emailLoading ? 'Saving...' : 'Update'}
-                      </Button>
+                        <Button
+                          onClick={handleEmailUpdate}
+                          disabled={emailLoading}
+                          className="bg-gradient-to-r from-blue-600 to-indigo-600 active:shadow-inner active:opacity-90"
+                        >
+                          {emailLoading ? 'Saving...' : 'Update'}
+                        </Button>
+                      </motion.div>
                     </div>
                     {emailMessage && (
                       <p className={`text-xs mt-2 ${emailMessage.includes('Error') ? 'text-red-600' : 'text-green-600'}`}>
@@ -369,9 +374,15 @@ export default function AccountPage() {
                   <p className="text-sm text-slate-600 mb-4">
                     Send a password reset email to your inbox.
                   </p>
-                  <Button variant="outline" className="w-full" onClick={handlePasswordReset}>
-                    Send Reset Email
-                  </Button>
+                  <motion.div whileTap={{ scale: 0.98 }} className="w-full">
+                    <Button
+                      variant="outline"
+                      className="w-full active:shadow-inner active:opacity-90"
+                      onClick={handlePasswordReset}
+                    >
+                      Send Reset Email
+                    </Button>
+                  </motion.div>
                 </CardContent>
               </Card>
             </motion.div>
@@ -394,13 +405,15 @@ export default function AccountPage() {
                   <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg p-6 border border-purple-200">
                     <p className="text-sm text-slate-600 mb-2">Current Plan</p>
                     <p className="text-2xl font-bold text-slate-900 mb-4">Pro</p>
-                    <Button
-                      onClick={handleManageBilling}
-                      disabled={billingLoading}
-                      className="bg-gradient-to-r from-blue-600 to-indigo-600"
-                    >
-                      {billingLoading ? 'Loading...' : 'Manage Billing'}
-                    </Button>
+                    <motion.div whileTap={{ scale: 0.98 }} className="w-full">
+                      <Button
+                        onClick={handleManageBilling}
+                        disabled={billingLoading}
+                        className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 active:shadow-inner active:opacity-90"
+                      >
+                        {billingLoading ? 'Loading...' : 'Manage Billing'}
+                      </Button>
+                    </motion.div>
                   </div>
                 </CardContent>
               </Card>
@@ -471,18 +484,20 @@ export default function AccountPage() {
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <Button
-                    variant="destructive"
-                    className="w-full"
-                    onClick={handleDeleteAccount}
-                    disabled={deletingAccount}
-                  >
-                    {deleteConfirm
-                      ? deletingAccount
-                        ? 'Deleting Account...'
-                        : 'Click Again to Confirm'
-                      : 'Delete Account'}
-                  </Button>
+                  <motion.div whileTap={{ scale: 0.98 }} className="w-full">
+                    <Button
+                      variant="destructive"
+                      className="w-full active:shadow-inner active:opacity-90"
+                      onClick={handleDeleteAccount}
+                      disabled={deletingAccount}
+                    >
+                      {deleteConfirm
+                        ? deletingAccount
+                          ? 'Deleting Account...'
+                          : 'Click Again to Confirm'
+                        : 'Delete Account'}
+                    </Button>
+                  </motion.div>
                   <p className="text-xs text-slate-500">
                     This action cannot be undone. All your data will be permanently deleted.
                   </p>
