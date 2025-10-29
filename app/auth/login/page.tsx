@@ -254,20 +254,6 @@ export default function LoginPage() {
                   )}
                 </Button>
 
-                {/* Dev Test Account Shortcut */}
-                {process.env.NODE_ENV === 'development' && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setEmail('test@leadfinder.com');
-                      setPassword('TestPassword123');
-                    }}
-                    className="w-full text-xs text-slate-500 hover:text-slate-700 p-2 rounded transition-colors"
-                  >
-                    💡 Fill test credentials (dev only)
-                  </button>
-                )}
-
                 {/* Divider */}
                 <div className="relative my-6">
                   <div className="absolute inset-0 flex items-center">
