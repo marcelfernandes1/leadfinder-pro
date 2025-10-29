@@ -6,6 +6,8 @@
 
 import Link from 'next/link';
 import { ArrowRight, Target, Zap, TrendingUp, CheckCircle, Sparkles } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 
 export default function LandingPage() {
   return (
@@ -23,18 +25,12 @@ export default function LandingPage() {
               </span>
             </div>
             <div className="flex items-center space-x-4">
-              <Link
-                href="/auth/login"
-                className="text-slate-600 hover:text-slate-900 font-medium transition-colors"
-              >
-                Sign In
-              </Link>
-              <Link
-                href="/auth/signup"
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-2 rounded-lg font-semibold hover:shadow-lg hover:scale-105 transition-all duration-200"
-              >
-                Get Started
-              </Link>
+              <Button variant="ghost" asChild>
+                <Link href="/auth/login">Sign In</Link>
+              </Button>
+              <Button className="bg-gradient-to-r from-blue-600 to-indigo-600" asChild>
+                <Link href="/auth/signup">Get Started</Link>
+              </Button>
             </div>
           </div>
         </div>
@@ -44,10 +40,10 @@ export default function LandingPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16">
         <div className="text-center space-y-8">
           {/* Badge */}
-          <div className="inline-flex items-center space-x-2 bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-sm font-medium">
-            <Sparkles className="w-4 h-4" />
-            <span>AI-Powered Lead Generation</span>
-          </div>
+          <Badge variant="secondary" className="bg-blue-100 text-blue-700 hover:bg-blue-200 px-4 py-2 text-sm">
+            <Sparkles className="w-4 h-4 mr-2" />
+            AI-Powered Lead Generation
+          </Badge>
 
           {/* Headline */}
           <h1 className="text-6xl md:text-7xl font-bold leading-tight">
@@ -68,19 +64,15 @@ export default function LandingPage() {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-            <Link
-              href="/auth/signup"
-              className="group bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-8 py-4 rounded-xl font-semibold text-lg hover:shadow-2xl hover:scale-105 transition-all duration-200 flex items-center space-x-2"
-            >
-              <span>Start Finding Leads</span>
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </Link>
-            <Link
-              href="#features"
-              className="text-slate-700 px-8 py-4 rounded-xl font-semibold text-lg hover:bg-white hover:shadow-lg transition-all duration-200"
-            >
-              See How It Works
-            </Link>
+            <Button size="lg" className="bg-gradient-to-r from-blue-600 to-indigo-600 text-lg" asChild>
+              <Link href="/auth/signup" className="group">
+                <span>Start Finding Leads</span>
+                <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </Button>
+            <Button variant="ghost" size="lg" className="text-lg" asChild>
+              <Link href="#features">See How It Works</Link>
+            </Button>
           </div>
 
           {/* Social Proof */}

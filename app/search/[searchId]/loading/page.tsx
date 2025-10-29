@@ -25,6 +25,8 @@ import {
   ArrowRight,
   Trophy,
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 
 interface SearchStatus {
   searchId: string;
@@ -121,12 +123,13 @@ export default function LoadingPage({
           </div>
           <h2 className="text-2xl font-bold text-slate-900 mb-2">Oops!</h2>
           <p className="text-red-600 mb-6">{error}</p>
-          <button
+          <Button
             onClick={() => router.push('/search')}
-            className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:shadow-lg hover:scale-105 transition-all duration-200"
+            className="bg-gradient-to-r from-blue-600 to-indigo-600"
+            size="lg"
           >
             Back to Search
-          </button>
+          </Button>
         </motion.div>
       </div>
     );
@@ -354,12 +357,14 @@ export default function LoadingPage({
             transition={{ delay: 0.5 }}
             className="text-center mt-6"
           >
-            <button
+            <Button
               onClick={() => router.push('/dashboard')}
-              className="text-sm text-slate-500 hover:text-slate-700 transition-colors"
+              variant="ghost"
+              size="sm"
+              className="text-slate-500"
             >
               Cancel and return to dashboard
-            </button>
+            </Button>
           </motion.div>
         )}
       </div>

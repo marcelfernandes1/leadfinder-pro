@@ -31,7 +31,7 @@ import {
   User,
   ChevronDown,
 } from 'lucide-react';
-import { cn } from '@/lib/utils/cn';
+import { cn } from '@/lib/utils';
 
 // Force dynamic rendering to avoid pre-render issues with useSearchParams
 export const dynamic = 'force-dynamic';
