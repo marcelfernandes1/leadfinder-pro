@@ -9,15 +9,21 @@ import { Inngest } from 'inngest';
 
 /**
  * Create Inngest client
- * 
+ *
  * The client is used to:
  * 1. Send events to trigger functions
  * 2. Define and register background functions
- * 
+ *
  * Event naming convention: "resource/action"
  * Examples: "search/discover", "lead/enrich.email", "lead/calculate.score"
+ *
+ * For local development, the Inngest Dev Server must be running:
+ * - Run: npx inngest-cli@latest dev
+ * - Dev UI: http://localhost:8288
+ *
+ * Note: Local dev server doesn't require event keys
  */
-export const inngest = new Inngest({ 
+export const inngest = new Inngest({
   id: 'leadfinder-pro',
   name: 'LeadFinder Pro',
 });
